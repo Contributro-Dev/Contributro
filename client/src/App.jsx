@@ -25,14 +25,7 @@ function App() {
           count is {count}
         </button>
           
-          
-
-          {users.map((users, index) => (
-              <div key={index}>
-              <span>{users}</span><br/>
-              </div>
-            ))
-          }
+      
       </div>
      
     </>
