@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify
-from ..extension import mongo
+from ..extensions import db
 
 users_bp = Blueprint('users', __name__)
 
@@ -10,7 +10,7 @@ def users():
         "email": "krrish@example.com"
     }
     try:
-        result = mongo.db.users.insert_one(usersInfo)
+        result = db.users.insert_one(usersInfo)
         new_id = str(result.inserted_id)
         return jsonify({
             "message": "User added successfully",
