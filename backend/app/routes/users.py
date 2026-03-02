@@ -1,21 +1,28 @@
 from flask import Blueprint, jsonify
 from ..extensions import db
+from flask import request
 
 users_bp = Blueprint('users', __name__)
+    
+@users_bp.route('/<int:github_id>', methods=['GET']) 
+def get_user(github_id):
+    user = db.users.find_one({"github_id": github_id})
+    if user:
+        user.pop('_id')  # Remove the MongoDB ObjectId from the response
+        return jsonify(user)
+    return jsonify({"error": "User not found"}), 404
 
-@users_bp.route('/', methods=['GET'])
-def users():
-    usersInfo = {
-        "name": "Krrish",
-        "email": "krrish@example.com"
-    }
-    try:
-        result = db.users.insert_one(usersInfo)
-        new_id = str(result.inserted_id)
-        return jsonify({
-            "message": "User added successfully",
-            "id": new_id,
-            "user": usersInfo['name']
-        })
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+@users_bp.route('/<int:github_id>', methods=['PUT'])
+def update_user(github_id):
+    data = request.get_json()
+    result = db.users.update_one({"github_id":github_id}, {"$set": data})
+    if result.matched_count:
+        return jsonify({"message": "User updated successfully"})
+    return jsonify({"error": "User not found"}), 404
+
+@users_bp.route('/',methods=['GET'])
+def all_users():
+    users = list(db.users.find())
+    for user in users:
+        user.pop('_id',None)  # Remove the MongoDB ObjectId from each user in the response
+    return jsonify(users)
