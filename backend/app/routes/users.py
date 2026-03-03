@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify
+from flask_jwt_extended import jwt_required
 from ..extensions import db
 from flask import request
 
@@ -26,3 +27,12 @@ def all_users():
     for user in users:
         user.pop('_id',None)  # Remove the MongoDB ObjectId from each user in the response
     return jsonify(users)
+
+@users_bp.route('/<int:github_id>/skills',methods =['PATCH'])
+@jwt_required()
+def update_user_skills(github_id):
+    data = request.get_json()
+    update_user = db.users.update_one({"github_id": github_id}, {"$set": {"skills": data.get('skills', []), "interests": data.get('interests', []),"intent": data.get('intent', "both")}})
+    if update_user.matched_count:
+        return jsonify({"message": "User skills updated successfully"})
+    return jsonify({"error": "User not found"}), 404
