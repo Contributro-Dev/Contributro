@@ -1,35 +1,26 @@
-import { useState , useEffect } from 'react'
-import axios from 'axios'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Routes, Route, BrowserRouter } from 'react-router-dom';
+import Home from './pages/home.jsx';  
+import Login from './pages/Login.jsx';
+import Dashboard from './pages/Dashboard.jsx';
+import Project from './pages/Project.jsx';
+import ProjectDetail from './pages/ProjectDetail.jsx';
+import CreateProject from './pages/CreateProject.jsx';
+import Profile from './pages/Profile.jsx';
 
 function App() {
-  const [count, setCount] = useState(0)
-  const [users, setUsers] = useState([]);
-
-  const fetchAPI = async () => {
-    const response =  await axios.get('http://localhost:8080/api/users');
-    setUsers(response.data.users);
-  }
-
-  useEffect(() => {
-    fetchAPI();
-  }, []); 
-
   return (
-    <>
-      
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-          
-      
-      </div>
-     
-    </>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/projects" element={<Project />} />
+        <Route path="/projects/:id" element={<ProjectDetail />} />
+        <Route path="/create-project" element={<CreateProject />} />
+        <Route path="/profile/:id" element={<Profile />} />
+      </Routes>
+    </BrowserRouter>
   )
 }
 
-export default App
+export default App;

@@ -69,7 +69,6 @@ def github_callback():
     user.pop("_id", None)    
         
     jwt_token = create_access_token(identity=str(user["github_id"]))
-    return jsonify({
-        "token": jwt_token,
-        "user": user
-    })
+    return redirect(
+        f"http://localhost:5173/dashboard?token={jwt_token}&github_id={user['github_id']}"
+    )
