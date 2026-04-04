@@ -179,7 +179,7 @@ function Login() {
             justifyContent: 'center',
             fontSize: '1.5rem',
           }}>
-            <span class="material-symbols-outlined">
+            <span className="material-symbols-outlined">
               lock_open
             </span>
           </div>
@@ -269,6 +269,7 @@ function Login() {
   )
 }
 
+
 const iconBtn = {
   background: 'transparent',
   border: '1px solid #222',
@@ -283,4 +284,4 @@ const iconBtn = {
   justifyContent: 'center',
 }
 
-export default Login
+export default Login;
