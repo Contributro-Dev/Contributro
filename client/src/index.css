@@ -1,0 +1,34 @@
+@import "tailwindcss";
+
+@font-face {
+    font-family: 'qafine';
+    src: url('./fonts/qafine/QafineDEMO-Regular.otf') format('opentype');
+}
+@font-face {
+    font-family: 'bulkside';
+    src: url('./fonts/bulkside/BulksideDEMO-Regular.otf') format('opentype');
+}
+
+
+@font-face {
+    font-family: 'flex';
+    src: url('./fonts/Google_Sans_Flex\,Inter\,Montserrat/Google_Sans_Flex/static/GoogleSansFlex_72pt-Bold.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'inter';
+    src: url('./fonts/Google_Sans_Flex\,Inter\,Montserrat/Inter/static/Inter_24pt-Regular.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'space-grotesk';
+    src: url('./fonts/Space_Grotesk/static/SpaceGrotesk-Bold.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'zin-ext';
+    src: url('./fonts/zin/zin.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'brandel';
+    src: url('./fonts/brandel-luchador/BrandelLuchador-Regular.ttf') format('truetype');
+}

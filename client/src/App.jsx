@@ -1,4 +1,6 @@
 import { Routes, Route, BrowserRouter } from 'react-router-dom';
+import { useContext } from 'react';
+import { AuthContext } from './context/AuthContext.jsx';
 import Home from './pages/home.jsx';  
 import Login from './pages/Login.jsx';
 import Dashboard from './pages/Dashboard.jsx';
@@ -6,10 +8,14 @@ import Project from './pages/Project.jsx';
 import ProjectDetail from './pages/ProjectDetail.jsx';
 import CreateProject from './pages/CreateProject.jsx';
 import Profile from './pages/Profile.jsx';
+import Navbar from './components/Navbar.jsx';
+
 
 function App() {
+  const { user } = useContext(AuthContext)
   return (
     <BrowserRouter>
+      {user && <Navbar />}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
