@@ -30,7 +30,17 @@ backend/.env
 backend/__pycache__/
 *.pyc
 
+# ML generated files
+backend/ml/vectorizer.pkl
+backend/**/__pycache__/
+backend/**/*.pyc
+*.pkl
+ml/
+
 # Frontend
 client/node_modules/
 client/.env
 client/dist/
+
+
+
