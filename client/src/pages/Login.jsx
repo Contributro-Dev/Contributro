@@ -75,21 +75,25 @@ function Login() {
             THE CONTRIBUTOR PLATFORM
           </p>
 
-          <h1 style={{
-            fontSize: 'clamp(2.5rem, 5vw, 4rem)',
-            fontFamily: "'flex', 'Space Grotesk', 'IBM Plex Mono', monospace",
-            fontWeight: 800,
-            lineHeight: 1.0,
-            color: '#7c5cfc',
-            marginBottom: '3rem',
-            letterSpacing: '0.03em',
-          }}>
-            Build<br />
-            something<br />
-            bigger than<br />
-            yourself.
-          </h1>
+<h1 style={{
+  fontSize: 'clamp(2.5rem, 5vw, 4rem)',
+  fontFamily: "'flex', 'Space Grotesk', 'IBM Plex Mono', monospace",
+  fontWeight: 800,
+  lineHeight: 1.0,
+  marginBottom: '3rem',
+  letterSpacing: '0.03em',
 
+  // Gradient text
+  background: 'linear-gradient(135deg, #7c5cfc 0%, #a78bfa 40%, #e879f9 100%)',
+  WebkitBackgroundClip: 'text',
+  WebkitTextFillColor: 'transparent',
+  backgroundClip: 'text',
+}}>
+  Build<br />
+  something<br />
+  bigger than<br />
+  yourself.
+</h1>
           {/* Feature list */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             {[
