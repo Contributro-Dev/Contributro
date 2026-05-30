@@ -56,74 +56,21 @@ function Dashboard() {
   // Join project
   // ─────────────────────────────────────────────
   const handleJoinProject = (projectId) => {
-    joinProject(projectId, token)
-      .then((response) => {
-        alert(response.data.message);
-      })
-      .catch((error) => {
-        alert(error.response?.data?.message || "Something went wrong");
-      });
-  };
-
-  // ─────────────────────────────────────────────
-  // Add skill
-  // ─────────────────────────────────────────────
-  const handleAddSkill = () => {
-    const trimmed = skillInput.trim();
-
-    if (trimmed && !selectedSkills.includes(trimmed)) {
-      setSelectedSkills([...selectedSkills, trimmed]);
-    }
-
-    setSkillInput("");
-  };
-
-  // ─────────────────────────────────────────────
-  // Save skills
-  // ─────────────────────────────────────────────
-  const handleSaveSkills = () => {
-    if (!user) return;
-
-    // Uncomment if using backend API
-
-    /*
-    api.patch(
-      `/api/users/${user.github_id}/skills`,
-      {
-        skills: selectedSkills,
-        interests: [],
-        intent: "both"
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      }
-    )
-    .then(() => {
-      setShowSkillPopup(false);
-
-      login(
-        {
-          ...user,
-          skills: selectedSkills
-        },
-        token
-      );
+    console.log("token:", token)
+    console.log("projectId:", projectId)
+    joinProject(projectId, token).then(response => {
+      console.log(response.data)
+      alert(response.data.message);
+    }).catch(error => {
+      console.error(error);
+      alert(error.response.data.message);
     })
-    .catch((err) => {
-      alert("Failed to save skills");
-      console.error(err);
-    });
-    */
+  }
 
-    // Temporary frontend-only close
-    setShowSkillPopup(false);
-  };
 
-  // ─────────────────────────────────────────────
-  // Render
-  // ─────────────────────────────────────────────
+
+
+
   return (
     <div className="max-w-2xl mx-auto p-4">
 
@@ -234,7 +181,7 @@ function Dashboard() {
                     cursor: "pointer",
                   }}
                 >
-                  {s} ×
+                  {s} 
                 </span>
               ))}
             </div>
