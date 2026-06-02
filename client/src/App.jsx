@@ -15,7 +15,6 @@ function App() {
   const { user } = useContext(AuthContext)
   return (
     <BrowserRouter>
-      {user && <Navbar />}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
