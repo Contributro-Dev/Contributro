@@ -21,7 +21,6 @@ SKILL_ALIASES = {
     "mongo":      "mongodb",
 }
 
-
 def normalize_skill(skill: str) -> str:
     s = skill.strip().lower()
     return SKILL_ALIASES.get(s, s)

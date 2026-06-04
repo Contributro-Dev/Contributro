@@ -32,7 +32,7 @@ class ProjectRecommender:
         print(f"[ML] Fitted on {len(projects)} projects. "
               f"Matrix shape: {self.project_vectors.shape}")
 
-    def recommend_projects(self, user: dict, top_n: int = 10) -> list:
+    def recommend_projects(self, user: dict, top_n: int = 10) -> list:  #Recommend projects to users
 
         if self.project_vectors is None or not self.projects:
             print("[ML] Recommender not fitted yet. Call fit() first.")
@@ -72,7 +72,7 @@ class ProjectRecommender:
         print(f"[ML] recommend_projects: returning {len(results)} results")
         return results
 
-    def recommend_collaborators(self, project: dict, all_users: list, top_n: int = 5) -> list:
+    def recommend_collaborators(self, project: dict, all_users: list, top_n: int = 5) -> list:  #Recommend users for projects
         """
         BUG FIXED:
             OLD (broken): self.vectorizer.fit_transform(all_docs)

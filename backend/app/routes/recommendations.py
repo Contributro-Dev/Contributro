@@ -7,7 +7,7 @@ from ..ml.recommender import recommender
 
 recommendations_bp = Blueprint('recommendations', __name__)
 
-
+#Suppose server just started.
 def _ensure_index_built():
     """
     Train the recommender if it has not been trained yet.
@@ -28,10 +28,6 @@ def _ensure_index_built():
 def get_project_recommendations():
 
     github_id = get_jwt_identity()
-
-    # IMPORTANT:
-    # Use int() if github_id is stored as a number in MongoDB.
-    # Use str() if github_id is stored as a string.
     user = db.users.find_one({
         "github_id": int(github_id)
     })
@@ -70,4 +66,14 @@ def refresh_index():
 
 
 
+'''
+"How does your recommendation system work?"
+->
+User data is fetched from MongoDB through a Flask API. 
+Project data is converted into TF-IDF vectors during training. 
+When a recommendation request arrives, 
+the user profile is converted into a vector using the same TF-IDF vocabulary. 
+Cosine similarity is computed between the user vector and all project vectors.
+An additional skill-overlap bonus is added, and projects are ranked according to the final score.
+The top-ranked projects are returned through the recommendation API.'''
 

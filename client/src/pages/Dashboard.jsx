@@ -12,7 +12,7 @@ function Dashboard() {
   const [projects, setProjects] = useState([]);
 
 
-  const [showSkillPopup, setShowSkillPopup] = useState(false)
+  const [showSkillPopup, setShowSkillPopup] = useState(true)
 
   // ─────────────────────────────────────────────
   // Handle GitHub OAuth redirect
@@ -32,9 +32,13 @@ function Dashboard() {
         window.history.replaceState({}, document.title, "/dashboard");
 
         // Show popup if user has no skills
-        if (isNewUser || response.data.skills?.length === 0) {
+        if (
+          !response.data.skills?.length ||
+          !response.data.interests?.length ||
+          !response.data.intent       
+) {
           setShowSkillPopup(true);
-        }
+}
       });
     } else if (user && user.skills?.length === 0) {
       setShowSkillPopup(true);
@@ -153,7 +157,7 @@ function Dashboard() {
       </div>
 
       {/* Modals */}
-      {showSkillPopup && <SkillsPopUp onClose={() => setShowSkillPopup(false)} />}
+      {showSkillPopup && <SkillsPopUp onClose={() => setShowSkillPopup(false)}/>}
     </div>
 
   );
