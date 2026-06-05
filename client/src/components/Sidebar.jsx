@@ -32,7 +32,6 @@ function Sidebar({ activePage}) {
 
 
 
-
     return (
         <div className={`sidebar ${isExpanded ? 'sidebar-expanded' : 'sidebar-collapsed'}`} onMouseEnter={() => {
             console.log('mouse entered')
