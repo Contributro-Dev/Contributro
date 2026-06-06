@@ -1,0 +1,106 @@
+/*← main wrapper (width changes here) */
+.sidebar {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 16px 8px;
+    background-color: #fff;
+    border-right: 1px solid #e5e7eb;
+    overflow-x: hidden;
+    position: relative;
+    transition: width 0.6s ease;
+}
+
+
+/*← modifier class when isExpanded is true */
+.sidebar-collapsed {
+    width: 60px;
+    align-items: center;
+}
+
+.sidebar-expanded {
+    width: 200px;
+}
+
+.sidebar-collapsed .sidebar-link {
+    justify-content: center;
+    padding: 10px 0;
+}
+
+/*← logo section at top */
+.sidebar-logo {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 8px;
+    margin-bottom: 10px;
+}
+
+
+
+.sidebar-logo-text {
+    font-size:18px;
+    font-weight: 700;
+}
+
+/*← navigation links container */
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    padding: 0 4px;
+    width: 100%;
+    gap: 2px;
+    flex: 1;
+}
+
+/*← individual link item */
+.sidebar-link {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    gap: 8px;
+    padding: 10px 12px;
+    cursor: pointer;
+    color: #6b7280;
+    border-radius: 4px;
+    align-items: center;
+    justify-content: flex-start ;
+}
+
+.sidebar-link:hover {
+    background-color: rgba(124, 58, 237, 0.05);
+    color: #7c3aed;
+}
+
+/*← modifier for active page */
+.sidebar-link-active {
+    background-color: rgba(124, 58, 237, 0.1);
+    color: #7c3aed;
+    border-left: 3px solid #7c3aed;
+}
+
+/*← icon inside each link */
+.sidebar-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+}
+
+/*← text label (hidden when collapsed) */
+.sidebar-label {
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+/*← bottom section with create + logout */
+.sidebar-bottom {
+    margin-top: auto;
+}
+
+.sidebar-username {
+    margin-left: 16px;
+}
