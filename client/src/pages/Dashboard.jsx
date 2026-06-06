@@ -6,7 +6,7 @@ import SkillsPopUp from "../components/SkillsPopUp.jsx";
 import Sidebar from "../components/Sidebar.jsx";
 import "./Dashboard.css";
 // import api if you are using api.patch()
-// import api from "../services/api.js";
+// import api from "../services/api.js"
 
 function Dashboard() {
   const { login, user, token, logout } = useContext(AuthContext);
