@@ -186,7 +186,6 @@ function Dashboard() {
                   <span className="stat-sublabel">Top 10% of developers</span>
                 </div>
               </div>
-
             </div>
             <div className="recomended-projects-section">
               <span className="recomendation-header">
