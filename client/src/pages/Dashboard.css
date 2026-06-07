@@ -4,6 +4,7 @@
     flex: 1;
     display: flex;
     flex-direction: column;
+    margin-left: 60px;
     overflow: hidden;
     font-family: 'Inter', sans-serif;
 }
@@ -389,8 +390,12 @@
 
 .bookmark-btn {
     position: absolute;
-    left: 185px;
-    top: 15px;
+    right: 8px;
+    top: 8px;
+    left: unset;
+    background: none;
+    border: none;
+    cursor: pointer;
 }
 
 
@@ -474,6 +479,71 @@
     color: #059669;
     align-self: flex-start;
 }
+
+.cards-carousel-wrapper {
+     position: relative;
+     display: flex;
+     align-items: center;
+     overflow: hidden;
+     border-radius: 8px;
+ }
+
+ .carousel-btn {
+     position: absolute;
+     top: 50%;
+     transform: translateY(-50%);
+     z-index: 10;
+     width: 32px;
+     height: 32px;
+     border-radius: 50%;
+     border: 1px solid #e5e7eb;
+     background: #fff;
+     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+     cursor: pointer;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     color: #374151;
+     transition: all 0.2s ease;
+ }
+
+ .carousel-btn:hover {
+     background: #7c3aed;
+     color: #fff;
+     border-color: #7c3aed;
+ }
+
+ .carousel-btn-left {
+     left: 4px;
+ }
+
+ .carousel-btn-right {
+     right: 4px;
+ }
+
+ .cards-fade-right {
+     position: absolute;
+     right: 0;
+     top: 0;
+     width: 100px;
+     height: 100%;
+     background: linear-gradient(to right, transparent, #fff);
+     pointer-events: none;
+     z-index: 5;
+ }
+
+ .cards-fade-left {
+     position: absolute;
+     left: 0;
+     top: 0;
+     width: 100px;
+     height: 100%;
+     background: linear-gradient(to left, transparent, #fff);
+     pointer-events: none;
+     z-index: 5;
+ }
+
+
 
 /* ── RECENT ACTIVITY ── */
 .recent-activity-section {
