@@ -1,16 +1,15 @@
  .explore-container {
+     background: #f3f4f6;
      height: 100vh;
      flex: 1;
      display: flex;
+     margin-left: 60px;
      flex-direction: column;
      overflow: hidden;
      font-family: 'Inter', sans-serif;
  }
 
- .explore-container {
-     margin-left: 60px;
-     /* same as collapsed sidebar width */
- }
+
 
  /* ── NAV ── */
  .explore-nav {

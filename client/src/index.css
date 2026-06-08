@@ -36,3 +36,8 @@
     font-family: 'brandel';
     src: url('./fonts/brandel-luchador/BrandelLuchador-Regular.ttf') format('truetype');
 }  
+
+body {
+    margin: 0;
+    background: #f3f4f6;
+}
