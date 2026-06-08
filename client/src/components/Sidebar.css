@@ -41,9 +41,11 @@
     gap: 8px;
     padding: 16px 8px;
     margin-bottom: 20px;
+    
 }
 
 .sidebar-logo-icon{
+
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 2px 2px 12px rgba(35, 7, 86, 0.1);
@@ -51,6 +53,7 @@
 
 
 .sidebar-logo-text {
+    
     font-size: 20px;
     font-weight: 700;
 }

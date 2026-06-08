@@ -28,7 +28,7 @@ function Sidebar({ activePage }) {
 
     const navigate = useNavigate();
 
-    const [isExpanded, setIsExpanded] = useState(true); // Start expanded on dashboard, collapsed on other pages
+    const [isExpanded, setIsExpanded] = useState(false); // Start expanded on dashboard, collapsed on other pages
 
 
 
