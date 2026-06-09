@@ -39,58 +39,29 @@ function Sidebar({ activePage }) {
         }} onMouseLeave={() => setIsExpanded(false)}>
             <div className="sidebar-logo">
                 <span className="sidebar-logo-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="32px" height="32px">
-                        <defs>
-                            <radialGradient id="bg" cx="50%" cy="40%" r="70%">
-                                <stop offset="0%" stop-color="#ffffff" />
-                                <stop offset="100%" stop-color="#F1F5F9" />
-                            </radialGradient>
+                    <svg width="32" height="32" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M22 18L10 32L22 46"
+                            stroke="#4F46E5"
+                            stroke-width="5"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        />
 
-                            <linearGradient id="bluePath" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stop-color="#00E1FF" />
-                                <stop offset="100%" stop-color="#0066FF" />
-                            </linearGradient>
+                        <path
+                            d="M42 18L54 32L42 46"
+                            stroke="#4F46E5"
+                            stroke-width="5"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        />
 
-                            <linearGradient id="darkPath" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stop-color="#475569" />
-                                <stop offset="100%" stop-color="#1E293B" />
-                            </linearGradient>
-
-                            <radialGradient id="centerDot" cx="30%" cy="30%" r="70%">
-                                <stop offset="0%" stop-color="#00E1FF" />
-                                <stop offset="100%" stop-color="#0066FF" />
-                            </radialGradient>
-
-                            <filter id="shadowLight" x="-20%" y="-20%" width="140%" height="140%">
-                                <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.12" />
-                            </filter>
-
-                            <filter id="shadowBlue" x="-20%" y="-20%" width="140%" height="140%">
-                                <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#0066FF" flood-opacity="0.25" />
-                            </filter>
-                        </defs>
-
-                        <rect width="100%" height="100%" fill="url(#bg)" />
-
-                        <g transform="translate(0, 20)">
-
-                            <path d="M 250 220 C 285 220, 305 280, 320 340 L 420 240 L 370 190"
-                                fill="none" stroke="url(#darkPath)" stroke-width="38"
-                                stroke-linecap="round" stroke-linejoin="round"
-                                filter="url(#shadowLight)" />
-
-                            <path d="M 130 190 L 80 240 L 180 340 C 195 280, 215 220, 250 220"
-                                fill="none" stroke="url(#bluePath)" stroke-width="38"
-                                stroke-linecap="round" stroke-linejoin="round"
-                                filter="url(#shadowBlue)" />
-
-                            <circle cx="130" cy="120" r="22" fill="url(#darkPath)" filter="url(#shadowLight)" />
-
-                            <circle cx="370" cy="120" r="22" fill="url(#darkPath)" filter="url(#shadowLight)" />
-
-                            <circle cx="250" cy="120" r="28" fill="url(#centerDot)" filter="url(#shadowBlue)" />
-
-                        </g>
+                        <path
+                            d="M36 14L28 50"
+                            stroke="#2563EB"
+                            stroke-width="5"
+                            stroke-linecap="round"
+                        />
                     </svg>
                 </span>
                 {isExpanded && <span className="sidebar-logo-text">Contributro</span>}

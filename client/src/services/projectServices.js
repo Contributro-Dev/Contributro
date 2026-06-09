@@ -8,9 +8,9 @@ export const getProject = (projectId) => {
     return api.get(`/api/projects/${projectId}`);
 }
 
-export const createProject = (projectData,token) =>{
-    return api.post('/api/projects', projectData, {
-        headers:{'Authorization': `Bearer ${token}`}
+export const createProject = (projectData, token) => {
+    return api.post('/api/projects/', projectData, {
+        headers: { 'Authorization': `Bearer ${token}` }
     });
 }
 

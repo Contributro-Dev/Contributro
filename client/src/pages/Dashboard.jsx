@@ -1,10 +1,11 @@
-import { useEffect, useContext, useState,useRef } from "react";
+import { useEffect, useContext, useState, useRef } from "react";
 import { AuthContext } from "../context/AuthContext.jsx";
 import { getUser } from "../services/authServices.js";
 import { getAllProjects, joinProject } from "../services/projectServices.js";
 import SkillsPopUp from "../components/SkillsPopUp.jsx";
 import Sidebar from "../components/Sidebar.jsx";
 import "./Dashboard.css";
+import { useNavigate } from "react-router-dom";
 // import api if you are using api.patch()
 // import api from "../services/api.js"
 
@@ -87,11 +88,13 @@ function Dashboard() {
     })
   }
 
+ 
+
   const firstLetter = user?.username?.charAt(0).toUpperCase() || "U";
 
 
 
-  return ( 
+  return (
     <div style={{ display: 'flex', flexDirection: 'row', height: '100vh', backgroundColor: '#fff', color: '#000' }}>
 
       <Sidebar activePage="dashboard" />

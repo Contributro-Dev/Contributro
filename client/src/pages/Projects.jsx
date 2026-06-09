@@ -151,7 +151,7 @@ function Projects() {
 
                 </div>
                 <div className="stat-info">
-                  <span className="stat-number">4</span>
+                  <span className="stat-number">3</span>
                   <span className="stat-label">Pending Requests</span>
                   <span className="stat-sublabel">Awaiting response</span>
                 </div>
