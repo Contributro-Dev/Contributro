@@ -100,7 +100,7 @@ function Explore() {
                             )}
                         </div>
                     </div>
-                </div>
+                </div> 
 
                 {/* content */}
                 <div className="explore-content">

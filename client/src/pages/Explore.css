@@ -1081,14 +1081,14 @@
 
  .all-projects-grid {
      display: grid;
-     grid-template-columns: repeat(3, 1fr);
+     grid-template-columns: repeat(2, 1fr);
      gap: 16px;
  }
 
-.all-projects-grid .project-card {
-    max-width: 100%;
-    flex-shrink: unset;
-}
+ .all-projects-grid .project-card {
+     max-width: 100%;
+     flex-shrink: unset;
+ }
 
  /* ── BUTTON VARIANTS ── */
  .your-project-btn {
