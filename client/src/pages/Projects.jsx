@@ -2,6 +2,7 @@ import { useEffect, useContext, useState, useRef } from "react";
 import { AuthContext } from "../context/AuthContext.jsx";
 import { getAllProjects, joinProject } from "../services/projectServices.js";
 import Sidebar from "../components/Sidebar.jsx";
+import { useNavigate } from 'react-router-dom'
 import "./Projects.css";
 
 function Projects() {
@@ -14,6 +15,7 @@ function Projects() {
   const [viewMode, setViewMode] = useState("grid")
   const [searchQuery, setSearchQuery] = useState("")
 
+  const navigate = useNavigate()
 
   // ─────────────────────────────────────────────
   // Load projects
@@ -107,8 +109,27 @@ function Projects() {
           <div className="projects-center">
             {/* Header + stats */}
             <div className="projects-header">
-              <span className="projects-title">My Projects</span>
-              <span className="projects-msg">Manage Projects you created and joined.</span>
+              <div className="header-left">
+                <span className="projects-title">My Projects</span>
+                <span className="projects-msg">Manage Projects you created and joined.</span>
+              </div>
+              <div className="header-right">
+                <div className='create-div' onClick={() => navigate('/create-project')}>
+                  <span className="create-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path
+                        d="M12 5V19M5 12H19"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                  </span>
+                  <span className="create-label">Create New Project</span>
+                </div>
+              </div>
+
             </div>
             <div className="projects-stats">
               <div className="projects-stat-card">

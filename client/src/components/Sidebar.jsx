@@ -28,7 +28,7 @@ function Sidebar({ activePage }) {
 
     const navigate = useNavigate();
 
-    const [isExpanded, setIsExpanded] = useState(false); // Start expanded on dashboard, collapsed on other pages
+    const [isExpanded, setIsExpanded] = useState(false); //  collapsed 
 
 
 
@@ -77,6 +77,22 @@ function Sidebar({ activePage }) {
                         {isExpanded && <span className="sidebar-label">{link.label}</span>}
                     </div>
                 ))}
+                <div className="create-new">
+                    <div className='create-div' onClick={() => navigate('/create-project')}>
+                        <span className="create-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M12 5V19M5 12H19"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                />
+                            </svg>
+                        </span>
+                        {isExpanded && <span className="create-label">Create New Project</span>}
+                    </div>
+                </div>
             </div>
             <div className="sidebar-bottom">
                 <div className="sidebar-link" onClick={logout}>

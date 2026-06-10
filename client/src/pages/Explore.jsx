@@ -1,7 +1,8 @@
-import { useEffect, useContext, useState ,useRef } from "react";
+import { useEffect, useContext, useState, useRef } from "react";
 import { AuthContext } from "../context/AuthContext.jsx";
 import { getAllProjects, joinProject } from "../services/projectServices.js";
 import Sidebar from "../components/Sidebar.jsx";
+import { useNavigate } from 'react-router-dom'
 import "./Explore.css";
 
 
@@ -16,6 +17,8 @@ function Explore() {
     const [showMoreFilters, setShowMoreFilters] = useState(false)
 
     const [scrolled, setScrolled] = useState(false)
+
+    const navigate = useNavigate()
 
     const handleScroll = () => {
         setScrolled(cardsRef.current.scrollLeft > 10)
@@ -106,8 +109,26 @@ function Explore() {
 
                         {/* Header + stats */}
                         <div className="explore-header">
-                            <span className="explore-title">Explore Projects</span>
-                            <span className="explore-msg">Find meaningful projects and contribution to open source.</span>
+                            <div className="header-left">
+                                <span className="explore-title">Explore Projects</span>
+                                <span className="explore-msg">Find meaningful projects and contribution to open source.</span>
+                            </div>
+                            <div className="header-right">
+                                <div className='create-div' onClick={() => navigate('/create-project')}>
+                                    <span className="create-icon">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path
+                                                d="M12 5V19M5 12H19"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                            />
+                                        </svg>
+                                    </span>
+                                    <span className="create-label">Create New Project</span>
+                                </div>
+                            </div>
                         </div>
 
                         {/* Tabs row */}
@@ -123,7 +144,7 @@ function Explore() {
                             <div className="tab">More <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                                 <polyline points="6 9 12 15 18 9" />
                             </svg></div>
-                        </div> 
+                        </div>
 
                         {/* Bottom — filters + cards */}
                         <div className="explore-bottom">
@@ -283,7 +304,7 @@ function Explore() {
                                         projects that match your skills and interests
                                     </span>
                                     <div className="cards-carousel-wrapper">
-                                        
+
                                         {scrolled && (
                                             <button className="carousel-btn carousel-btn-left" onClick={scrollLeft}>
                                                 <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
