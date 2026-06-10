@@ -37,7 +37,7 @@ def get_all_projects():
     for project in projects:
         project['_id'] = str(project['_id'])  # Convert ObjectId to string for JSON serialization
     return jsonify(projects)    
-    
+     
 @projects_bp.route('/<project_id>', methods=['GET'])
 def get_project(project_id):
     project = db.projects.find_one({"_id": ObjectId(project_id)})

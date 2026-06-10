@@ -626,6 +626,11 @@
      font-size: 0.7rem;
      color: #6b7280;
      line-height: 1.5;
+     display: -webkit-box;
+     -webkit-line-clamp: 3;
+     -webkit-box-orient: vertical;
+     line-clamp: 3;
+     overflow: hidden;
  }
 
  .project-card-skills {
@@ -1076,11 +1081,14 @@
 
  .all-projects-grid {
      display: grid;
-     grid-template-columns: repeat(auto-fill, minmax(220px, 0fr));
+     grid-template-columns: repeat(3, 1fr);
      gap: 16px;
  }
 
-
+.all-projects-grid .project-card {
+    max-width: 100%;
+    flex-shrink: unset;
+}
 
  /* ── BUTTON VARIANTS ── */
  .your-project-btn {

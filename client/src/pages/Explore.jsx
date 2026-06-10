@@ -51,6 +51,7 @@ function Explore() {
         })
     }
 
+
     const firstLetter = user?.username?.charAt(0).toUpperCase() || "U";
 
     return (
@@ -315,7 +316,7 @@ function Explore() {
                                         {scrolled && <div className="cards-fade-left" />}
 
                                         <div className="reconmended-projects-cards" ref={cardsRef} onScroll={handleScroll}>
-                                            <div className="project-card">
+                                            <div className="project-card carousel-card" key="card-1" onClick={() => navigate('/explore')}>
                                                 <div className="card-header card-bg-1">
                                                     <div className="icon-wraper" style={{ background: 'linear-gradient(135deg, #393989, #0c0f11)' }}>
                                                         <svg width="32" height="32" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -386,7 +387,7 @@ function Explore() {
                                                     </button>
                                                 </div>
                                             </div>
-                                            <div className="project-card">
+                                            <div className="project-card carousel-card" key="card-2"  onClick={() => navigate('/explore')}>
                                                 <div className="card-header card-bg-2">
                                                     <div className="icon-wraper" style={{ background: 'linear-gradient(135deg, #5e8939, #0c110d)' }}>
                                                         <svg width="30" height="30" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -461,7 +462,7 @@ function Explore() {
                                                     </button>
                                                 </div>
                                             </div>
-                                            <div className="project-card">
+                                            <div className="project-card carousel-card" key="card-3" onClick={() => navigate('/explore')}>
                                                 <div className="card-header card-bg-3">
                                                     <div className="icon-wraper" style={{ background: 'linear-gradient(135deg, #5c3989, #0f0c11)' }}>
                                                         <svg width="28" height="28" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -586,10 +587,11 @@ function Explore() {
                                     {/* Cards grid */}
                                     <div className="all-projects-grid">
                                         {projects.map(project => {
-                                            const isOwner = project.owner_github_id === String(user?.github_id)
-                                            const isMember = project.members?.includes(String(user?.github_id))
+                                            const isOwner = String(project.owner_github_id) === String(user.github_id)
+                                            const isMember = project.members?.map(String).includes(String(user.github_id))
+
                                             return (
-                                                <div key={project._id} className="project-card">
+                                                <div className="project-card" key={project._id} onClick={() => navigate(`/projects/${project._id}`)}>
                                                     <div className="card-header card-bg-1">
                                                         <div className="icon-wraper" style={{ background: 'linear-gradient(135deg, #393989, #0c0f11)' }}>
                                                             <svg width="24" height="24" viewBox="0 0 48 48" fill="none">

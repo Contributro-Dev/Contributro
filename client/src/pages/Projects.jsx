@@ -53,6 +53,8 @@ function Projects() {
     .filter(p => filter === "all" || p.status === filter)
     .filter(p => p.title.toLowerCase().includes(searchQuery.toLowerCase()))
 
+
+
   const firstLetter = user?.username?.charAt(0).toUpperCase() || "U";
 
   return (
@@ -255,7 +257,7 @@ function Projects() {
                       project.members.map(String).includes(String(user.github_id));
                     const bgClass = `card-bg-${(i % 3) + 1}`;
                     return (
-                      <div className="project-card" key={project._id}>
+                      <div className="project-card" key={project._id} onClick={() => navigate(`/projects/${project._id}`)}>
                         <div className={`card-header ${bgClass}`}>
                           <div className="icon-wraper" style={{ background: "#fff" }}>
                             <svg width="20" height="20" fill="none" stroke="#7c3aed" strokeWidth="2" viewBox="0 0 24 24">
