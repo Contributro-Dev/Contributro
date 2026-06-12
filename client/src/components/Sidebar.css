@@ -82,7 +82,7 @@
     justify-content: flex-start;
 }
 
-.sidebar-link:hover {
+.sidebar-link:hover { 
     background-color: rgba(124, 58, 237, 0.05);
     color: #7c3aed;
 }
