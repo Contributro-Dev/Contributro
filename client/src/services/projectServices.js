@@ -4,7 +4,7 @@ export const getAllProjects = () => {
     return api.get('/api/projects');
 }
 
-export const getProject = (projectId) => {
+export const getProject = (projectId,token) => {
     return api.get(`/api/projects/${projectId}`);
 }
 
