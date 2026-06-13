@@ -15,6 +15,20 @@ function Explore() {
 
 
     const [showMoreFilters, setShowMoreFilters] = useState(false)
+    const [bookmarkedIds, setBookmarkedIds] = useState(() => {
+        return JSON.parse(localStorage.getItem('bookmarks') || '[]');
+});
+
+    const toggleBookmark = (projectId, e) => {
+        e.stopPropagation();
+        setBookmarkedIds(prev => {
+            const updated = prev.includes(projectId)
+                ? prev.filter(id => id !== projectId)
+                : [...prev, projectId];
+            localStorage.setItem('bookmarks', JSON.stringify(updated));
+            return updated;
+        });
+};
 
     const [scrolled, setScrolled] = useState(false)
 
@@ -50,8 +64,6 @@ function Explore() {
             alert(error.response.data.message);
         })
     }
-
-
     const firstLetter = user?.username?.charAt(0).toUpperCase() || "U";
 
     return (
@@ -100,7 +112,7 @@ function Explore() {
                             )}
                         </div>
                     </div>
-                </div> 
+                </div>
 
                 {/* content */}
                 <div className="explore-content">
@@ -316,7 +328,7 @@ function Explore() {
                                         {scrolled && <div className="cards-fade-left" />}
 
                                         <div className="reconmended-projects-cards" ref={cardsRef} onScroll={handleScroll}>
-                                            <div className="project-card carousel-card" key="card-1" onClick={() => navigate('/explore')}>
+                                            <div className="project-card">
                                                 <div className="card-header card-bg-1">
                                                     <div className="icon-wraper" style={{ background: 'linear-gradient(135deg, #393989, #0c0f11)' }}>
                                                         <svg width="32" height="32" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -387,7 +399,7 @@ function Explore() {
                                                     </button>
                                                 </div>
                                             </div>
-                                            <div className="project-card carousel-card" key="card-2"  onClick={() => navigate('/explore')}>
+                                            <div className="project-card">
                                                 <div className="card-header card-bg-2">
                                                     <div className="icon-wraper" style={{ background: 'linear-gradient(135deg, #5e8939, #0c110d)' }}>
                                                         <svg width="30" height="30" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -462,7 +474,7 @@ function Explore() {
                                                     </button>
                                                 </div>
                                             </div>
-                                            <div className="project-card carousel-card" key="card-3" onClick={() => navigate('/explore')}>
+                                            <div className="project-card">
                                                 <div className="card-header card-bg-3">
                                                     <div className="icon-wraper" style={{ background: 'linear-gradient(135deg, #5c3989, #0f0c11)' }}>
                                                         <svg width="28" height="28" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -587,11 +599,10 @@ function Explore() {
                                     {/* Cards grid */}
                                     <div className="all-projects-grid">
                                         {projects.map(project => {
-                                            const isOwner = String(project.owner_github_id) === String(user.github_id)
-                                            const isMember = project.members?.map(String).includes(String(user.github_id))
-
+                                            const isOwner = project.owner_github_id === String(user?.github_id)
+                                            const isMember = project.members?.includes(String(user?.github_id))
                                             return (
-                                                <div className="project-card" key={project._id} onClick={() => navigate(`/projects/${project._id}`)}>
+                                                <div key={project._id} className="project-card">
                                                     <div className="card-header card-bg-1">
                                                         <div className="icon-wraper" style={{ background: 'linear-gradient(135deg, #393989, #0c0f11)' }}>
                                                             <svg width="24" height="24" viewBox="0 0 48 48" fill="none">
@@ -606,8 +617,8 @@ function Explore() {
                                                                 <rect x="30" y="10" width="6" height="28" rx="2" fill={`url(#grad-${project._id})`} />
                                                             </svg>
                                                         </div>
-                                                        <button className="bookmark-btn">
-                                                            <svg width="18" height="18" fill="none" stroke="#fff" strokeWidth="2" viewBox="0 0 24 24">
+                                                       <button className="bookmark-btn" onClick={(e) => toggleBookmark(project._id, e)}>
+                                                            <svg width="18" height="18" fill={bookmarkedIds.includes(project._id) ? "#fff" : "none"} stroke="#fff" strokeWidth="2" viewBox="0 0 24 24">
                                                                 <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
                                                             </svg>
                                                         </button>
@@ -651,8 +662,8 @@ function Explore() {
                                                                 Join Project
                                                             </button>
                                                         )}
-                                                        <button className="bottom-bookmark-btn">
-                                                            <svg width="18" height="18" fill="none" stroke="#1d1d1dd1" strokeWidth="1.3" viewBox="0 0 24 24">
+                                                        <button className="bottom-bookmark-btn" onClick={(e) => toggleBookmark(project._id, e)}>
+                                                            <svg width="18" height="18" fill={bookmarkedIds.includes(project._id) ? "#6366f1" : "none"} stroke="#1d1d1dd1" strokeWidth="1.3" viewBox="0 0 24 24">
                                                                 <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
                                                             </svg>
                                                         </button>
@@ -799,9 +810,7 @@ function Explore() {
                                 ))}
                             </div>
                         </div>
-
                     </div>
-
                 </div>
             </div>
         </div>

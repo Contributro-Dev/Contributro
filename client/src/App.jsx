@@ -10,7 +10,7 @@ import ProjectDetail from './pages/ProjectDetail.jsx';
 import CreateProject from './pages/CreateProject.jsx';
 import Profile from './pages/Profile.jsx';
 import Navbar from './components/Navbar.jsx';
-
+import Bookmarks from './pages/Bookmarks';
 
 function App() {
   const { user } = useContext(AuthContext)
@@ -25,9 +25,9 @@ function App() {
         <Route path="/projects/:id" element={<ProjectDetail />} />
         <Route path="/create-project" element={<CreateProject />} />
         <Route path="/profile/:id" element={<Profile />} />
+        <Route path="/bookmarks" element={<Bookmarks />} />
       </Routes>
     </BrowserRouter>
   )
 }
-
 export default App;

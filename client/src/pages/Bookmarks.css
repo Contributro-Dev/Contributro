@@ -1,0 +1,311 @@
+/* ── Layout ──────────────────────────────────────────────────────────────── */
+
+.bookmarks-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f3f4f6;
+  font-family: 'Inter', sans-serif;
+}
+
+.bookmarks-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ── Navbar ──────────────────────────────────────────────────────────────── */
+
+.bookmarks-nav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  height: 60px;
+  background-color: #ffffffa5;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.bookmarks-nav__left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bookmarks-nav__title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  letter-spacing: -0.01em;
+}
+
+.bookmarks-nav__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background-color: #ede9fe;
+  color: #6366f1;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.bookmarks-nav__user {
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* ── Main content ────────────────────────────────────────────────────────── */
+
+.bookmarks-main {
+  flex: 1;
+  padding: 32px 28px 48px;
+}
+
+.bookmarks-subtitle {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0 0 24px;
+}
+
+/* ── Grid ────────────────────────────────────────────────────────────────── */
+
+.bookmarks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 320px));
+  gap: 20px;
+}
+
+@media (max-width: 900px) {
+  .bookmarks-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Project card ────────────────────────────────────────────────────────── */
+
+.project-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07), 0 1px 2px rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+  transition: box-shadow 0.18s ease, transform 0.18s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  outline: none;
+}
+
+.project-card:hover {
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06);
+  transform: translateY(-2px);
+}
+
+.project-card:focus-visible {
+  box-shadow: 0 0 0 2px #6366f1;
+}
+
+.project-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.project-card__title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+}
+
+.project-card__desc {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── Unsave button ───────────────────────────────────────────────────────── */
+
+.project-card__unsave {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: #6366f1;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  flex-shrink: 0;
+}
+
+.project-card__unsave:hover {
+  background-color: #ede9fe;
+  color: #4f46e5;
+}
+
+/* ── Status badges ───────────────────────────────────────────────────────── */
+
+.badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 999px;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+.badge--active {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
+.badge--seeking {
+  background-color: #ede9fe;
+  color: #6366f1;
+}
+
+.badge--review {
+  background-color: #fef9c3;
+  color: #a16207;
+}
+
+.badge--default {
+  background-color: #f3f4f6;
+  color: #6b7280;
+}
+
+/* ── Skill tags ──────────────────────────────────────────────────────────── */
+
+.project-card__skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.skill-tag {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 6px;
+  background-color: #ede9fe;
+  color: #6366f1;
+}
+
+/* ── Footer row ──────────────────────────────────────────────────────────── */
+
+.project-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 4px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.project-card__match {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #612cda;
+}
+
+.match-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #612cda;
+  flex-shrink: 0;
+}
+
+.project-card__contributors {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* ── Empty state ─────────────────────────────────────────────────────────── */
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 80px 24px;
+  gap: 12px;
+}
+
+.empty-state__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 18px;
+  background-color: #ede9fe;
+  color: #6366f1;
+  margin-bottom: 8px;
+}
+
+.empty-state__heading {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.empty-state__body {
+  font-size: 14px;
+  color: #6b7280;
+  max-width: 320px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.empty-state__cta {
+  margin-top: 8px;
+  padding: 10px 22px;
+  background-color: #6366f1;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: background-color 0.15s;
+}
+
+.empty-state__cta:hover {
+  background-color: #4f46e5;
+}
+
+.empty-state__cta:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
