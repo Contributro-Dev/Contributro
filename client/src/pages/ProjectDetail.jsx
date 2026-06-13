@@ -559,16 +559,148 @@ function ProjectDetail() {
                         <span className="need-title">Contributors Needed</span>
                       </div>
                       <div className="need-tags">
-                          <div className="badge-need">Frontend Developer</div>
-                          <div className="badge-need">ML Engineer</div>
-                          <div className="badge-need">UI/UX Designer</div>
+                        <div className="badge-need">Frontend Developer</div>
+                        <div className="badge-need">ML Engineer</div>
+                        <div className="badge-need">UI/UX Designer</div>
                       </div>
                     </div>
 
                   </div>
 
                   <div className="project-detail-div">
-                    <span className="project-detail-title">Project Details</span>
+                    <div className="header-project-detail-div">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="8" stroke-width="3" />
+                        <line x1="12" y1="12" x2="12" y2="16" />
+                      </svg>
+                      <span className="project-detail-title">Project Details</span>
+                    </div>
+                    <div className="details-div">
+                      <div className="line-1">
+                        <div className="left-detail">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2D3748" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="7" r="4" />
+                            <path d="M5 21a7 7 0 0 1 14 0" />
+                          </svg>
+
+                          <span>Project Owner</span>
+                        </div>
+                        <div className="right-detail">
+                          <span>{project.owner_github_id}</span>
+                        </div>
+                      </div>
+                      <div className="line-2">
+                        <div className="left-detail">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2D3748" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+
+                            <line x1="16" y1="2" x2="16" y2="6" />
+                            <line x1="8" y1="2" x2="8" y2="6" />
+
+                            <line x1="3" y1="10" x2="21" y2="10" />
+
+                            <line x1="8" y1="14" x2="8.01" y2="14" stroke-width="2.5" />
+                            <line x1="12" y1="14" x2="12.01" y2="14" stroke-width="2.5" />
+                            <line x1="16" y1="14" x2="16.01" y2="14" stroke-width="2.5" />
+                            <line x1="8" y1="18" x2="8.01" y2="18" stroke-width="2.5" />
+                            <line x1="12" y1="18" x2="12.01" y2="18" stroke-width="2.5" />
+                            <line x1="16" y1="18" x2="16.01" y2="18" stroke-width="2.5" />
+                          </svg>
+
+                          <span>Created </span>
+                        </div>
+                        <div className="right-detail">
+                          <span>{project.created_at}</span>
+                        </div>
+                      </div>
+                      <div className="line-3">
+                        <div className="left-detail">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2D3748" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+
+                            <polyline points="12 6 12 12 16 14" />
+                          </svg>
+                          <span>Last updated</span>
+                        </div>
+                        <div className="right-detail">
+                          <span>1 day ago</span>
+                        </div>
+                      </div>
+                      <div className="line-4">
+                        <div className="left-detail">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2D3748" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M10 13a5 5 0 0 0 7.07 0l2.12-2.12a5 5 0 0 0 -7.07-7.07l-.7.7" />
+
+                            <path d="M14 11a5 5 0 0 0 -7.07 0l-2.12 2.12a5 5 0 0 0 7.07 7.07l.7-.7" />
+                          </svg>
+
+                          <span>GitHub Repository</span>
+                        </div>
+                        <div className="right-detail">
+                          <a href="#">github.com/kaivalyakulkarni/
+                            student-performance-analysis</a>
+                        </div>
+                      </div>
+                      <div className="line-5">
+                        <div className="left-detail">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" y1="8" x2="12" y2="8" stroke-width="3" />
+                            <line x1="12" y1="12" x2="12" y2="16" />
+                          </svg>
+                          <span>Project Status</span>
+                        </div>
+                        <div className="right-detail">
+                          <span>Active</span>
+                        </div>
+                      </div>
+                      <div className="line-6">
+                        <div className="left-detail">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2D3748" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+
+                            <line x1="7" y1="7" x2="7.01" y2="7" stroke-width="2.5" />
+                          </svg>
+
+                          <span>Project Type</span>
+                        </div>
+                        <div className="right-detail">
+                          <span>Open Source</span>
+                        </div>
+                      </div>
+                      <div className="line-7">
+                        <div className="left-detail">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2D3748" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+
+                            <line x1="2" y1="12" x2="22" y2="12" />
+
+                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                          </svg>
+
+                          <span>Domain</span>
+                        </div>
+                        <div className="right-detail">
+                          <span>Education,ML</span>
+                        </div>
+                      </div>
+                      <div className="line-8">
+                        <div className="left-detail">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2D3748" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="16 18 22 12 16 6" />
+
+                            <polyline points="8 6 2 12 8 18" />
+                          </svg>
+
+                          <span>Language</span>
+                        </div>
+                        <div className="right-detail">
+                          <span>Python</span>
+                        </div>
+                      </div>
+
+                    </div>
                   </div>
                 </div>
               </div>
