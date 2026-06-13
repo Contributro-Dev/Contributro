@@ -602,9 +602,9 @@ function Explore() {
                                             const isOwner = project.owner_github_id === String(user?.github_id)
                                             const isMember = project.members?.includes(String(user?.github_id))
                                             return (
-                                                <div key={project._id} className="project-card">
+                                                <div key={project._id} className="project-card" onClick={() => navigate(`/projects/${project._id}`)}>
                                                     <div className="card-header card-bg-1">
-                                                        <div className="icon-wraper" style={{ background: 'linear-gradient(135deg, #393989, #0c0f11)' }}>
+                                                        <div className="icon-wraper" style={{  background: 'linear-gradient(135deg, #393989, #0c0f11)' }}>
                                                             <svg width="24" height="24" viewBox="0 0 48 48" fill="none">
                                                                 <defs>
                                                                     <linearGradient id={`grad-${project._id}`} x1="0" y1="0" x2="48" y2="48">

@@ -43,24 +43,24 @@ function Sidebar({ activePage }) {
                         <path
                             d="M22 18L10 32L22 46"
                             stroke="#4F46E5"
-                            stroke-width="5"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
+                            strokeWidth="5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
                         />
 
                         <path
                             d="M42 18L54 32L42 46"
                             stroke="#4F46E5"
-                            stroke-width="5"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
+                            strokeWidth="5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
                         />
 
                         <path
                             d="M36 14L28 50"
                             stroke="#2563EB"
-                            stroke-width="5"
-                            stroke-linecap="round"
+                            strokeWidth="5"
+                            strokeLinecap="round"
                         />
                     </svg>
                 </span>
@@ -84,9 +84,9 @@ function Sidebar({ activePage }) {
                                 <path
                                     d="M12 5V19M5 12H19"
                                     stroke="currentColor"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
                                 />
                             </svg>
                         </span>
