@@ -24,7 +24,7 @@ function App() {
         <Route path="/projects" element={<Projects />} />
         <Route path="/projects/:id" element={<ProjectDetail />} />
         <Route path="/create-project" element={<CreateProject />} />
-        <Route path="/profile/:id" element={<Profile />} />
+        <Route path="/profile" element={<Profile />} />
         <Route path="/bookmarks" element={<Bookmarks />} />
       </Routes>
     </BrowserRouter>
