@@ -1,11 +1,13 @@
 import { useParams } from 'react-router-dom'
 import { useEffect, useContext, useState } from "react";
 import { AuthContext } from "../context/AuthContext.jsx";
-import { getProject, joinProject } from "../services/projectServices.js";
+import { getProject, joinProject, getReadme, getCommits, getIssues, getPulls } from "../services/projectServices.js";
 import Sidebar from "../components/Sidebar.jsx";
 import { useNavigate } from 'react-router-dom'
 import "./ProjectDetail.css";
 import codeIcon from "../assets/project-icon.png"
+import ReactMarkdown from "react-markdown";
+
 
 function ProjectDetail() {
 
@@ -22,6 +24,19 @@ function ProjectDetail() {
 
   const [activeTab, setActiveTab] = useState("overview")
 
+  const [readme, setReadme] = useState(null);
+  const [readmeLoading, setReadmeLoading] = useState(false);
+  const [readmeError, setReadmeError] = useState(null);
+
+  const [commits, setCommits] = useState([]);
+  const [commitsLoading, setCommitsLoading] = useState(false);
+
+  const [issues, setIssues] = useState([]);
+  const [issuesLoading, setIssuesLoading] = useState(false);
+
+  const [pulls, setPulls] = useState([]);
+  const [pullsLoading, setPullsLoading] = useState(false);
+
   const { id } = useParams()
 
   // Load project
@@ -36,6 +51,50 @@ function ProjectDetail() {
       alert(error.response.data.message);
     })
   }, [id, token])
+
+  // Load commits once project is available (used in overview "Last Commit" + commits section)
+  useEffect(() => {
+    if (!project) return
+    setCommitsLoading(true)
+    getCommits(id, token)
+      .then(res => setCommits(res.data.commits || []))
+      .catch(err => console.error(err))
+      .finally(() => setCommitsLoading(false))
+  }, [project, id, token])
+
+  // Load README when README tab is opened
+  useEffect(() => {
+    if (activeTab !== "readme" || readme !== null) return
+    setReadmeLoading(true)
+    setReadmeError(null)
+    getReadme(id, token)
+      .then(res => setReadme(res.data.markdown))
+      .catch(err => {
+        console.error(err)
+        setReadmeError(err.response?.data?.error || "Could not load README")
+      })
+      .finally(() => setReadmeLoading(false))
+  }, [activeTab, readme, id, token])
+
+  // Load issues when Issues tab is opened
+  useEffect(() => {
+    if (activeTab !== "issues") return
+    setIssuesLoading(true)
+    getIssues(id, token)
+      .then(res => setIssues(res.data.issues || []))
+      .catch(err => console.error(err))
+      .finally(() => setIssuesLoading(false))
+  }, [activeTab, id, token])
+
+  // Load pull requests when Pull Request tab is opened
+  useEffect(() => {
+    if (activeTab !== "pull-request") return
+    setPullsLoading(true)
+    getPulls(id, token)
+      .then(res => setPulls(res.data.pulls || []))
+      .catch(err => console.error(err))
+      .finally(() => setPullsLoading(false))
+  }, [activeTab, id, token])
 
   const handelJoin = (() => {
     joinProject(id, token).then(() => {
@@ -53,6 +112,10 @@ function ProjectDetail() {
   const isOwner = String(project.owner_github_id) === String(user.github_id)
   const isMember = project.members?.map(String).includes(String(user.github_id))
   const createdDate = new Date(project.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
+
+  const lastCommitLabel = commits.length > 0
+    ? new Date(commits[0].date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
+    : (commitsLoading ? "Loading..." : "No commits")
 
 
   const radius = 50;
@@ -277,7 +340,7 @@ function ProjectDetail() {
                         <button className="leaveproject-btn">Leave Project</button>
                       </div>
                       <div className="view-issue-div">
-                        <button className="view-issue-btn">
+                        <button className="view-issue-btn" onClick={() => setActiveTab("issues")}>
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <circle cx="12" cy="12" r="10" />
                             <line x1="12" y1="8" x2="12" y2="12" />
@@ -294,7 +357,7 @@ function ProjectDetail() {
                         </button>
                       </div>
                       <div className="create-pull-div">
-                        <button className="create-pull-btn">
+                        <button className="create-pull-btn" onClick={() => setActiveTab("pull-request")}>
                           <svg xmlns="http://www.w3.org/2000/svg" width={16} height={16} viewBox="0 0 640 640"><path d="M392 88C392 78.3 386.2 69.5 377.2 65.8C368.2 62.1 357.9 64.2 351 71L295 127C285.6 136.4 285.6 151.6 295 160.9L351 216.9C357.9 223.8 368.2 225.8 377.2 222.1C386.2 218.4 392 209.7 392 200L392 176L416 176C433.7 176 448 190.3 448 208L448 422.7C419.7 435 400 463.2 400 496C400 540.2 435.8 576 480 576C524.2 576 560 540.2 560 496C560 463.2 540.3 435 512 422.7L512 208C512 155 469 112 416 112L392 112L392 88zM136 144C136 130.7 146.7 120 160 120C173.3 120 184 130.7 184 144C184 157.3 173.3 168 160 168C146.7 168 136 157.3 136 144zM192 217.3C220.3 205 240 176.8 240 144C240 99.8 204.2 64 160 64C115.8 64 80 99.8 80 144C80 176.8 99.7 205 128 217.3L128 422.6C99.7 434.9 80 463.1 80 495.9C80 540.1 115.8 575.9 160 575.9C204.2 575.9 240 540.1 240 495.9C240 463.1 220.3 434.9 192 422.6L192 217.3zM136 496C136 482.7 146.7 472 160 472C173.3 472 184 482.7 184 496C184 509.3 173.3 520 160 520C146.7 520 136 509.3 136 496zM480 472C493.3 472 504 482.7 504 496C504 509.3 493.3 520 480 520C466.7 520 456 509.3 456 496C456 482.7 466.7 472 480 472z" /></svg>
                           <span>Create Pull Request </span>
                         </button>
@@ -308,7 +371,7 @@ function ProjectDetail() {
                       <span>Your Project</span>
                     </button>
                     <div className="view-issue-div">
-                      <button className="view-issue-btn">
+                      <button className="view-issue-btn" onClick={() => setActiveTab("issues")}>
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <circle cx="12" cy="12" r="10" />
                           <line x1="12" y1="8" x2="12" y2="12" />
@@ -325,7 +388,7 @@ function ProjectDetail() {
                       </button>
                     </div>
                     <div className="create-pull-div">
-                      <button className="create-pull-btn">
+                      <button className="create-pull-btn" onClick={() => setActiveTab("pull-request")}>
                         <svg xmlns="http://www.w3.org/2000/svg" width={16} height={16} viewBox="0 0 640 640"><path d="M392 88C392 78.3 386.2 69.5 377.2 65.8C368.2 62.1 357.9 64.2 351 71L295 127C285.6 136.4 285.6 151.6 295 160.9L351 216.9C357.9 223.8 368.2 225.8 377.2 222.1C386.2 218.4 392 209.7 392 200L392 176L416 176C433.7 176 448 190.3 448 208L448 422.7C419.7 435 400 463.2 400 496C400 540.2 435.8 576 480 576C524.2 576 560 540.2 560 496C560 463.2 540.3 435 512 422.7L512 208C512 155 469 112 416 112L392 112L392 88zM136 144C136 130.7 146.7 120 160 120C173.3 120 184 130.7 184 144C184 157.3 173.3 168 160 168C146.7 168 136 157.3 136 144zM192 217.3C220.3 205 240 176.8 240 144C240 99.8 204.2 64 160 64C115.8 64 80 99.8 80 144C80 176.8 99.7 205 128 217.3L128 422.6C99.7 434.9 80 463.1 80 495.9C80 540.1 115.8 575.9 160 575.9C204.2 575.9 240 540.1 240 495.9C240 463.1 220.3 434.9 192 422.6L192 217.3zM136 496C136 482.7 146.7 472 160 472C173.3 472 184 482.7 184 496C184 509.3 173.3 520 160 520C146.7 520 136 509.3 136 496zM480 472C493.3 472 504 482.7 504 496C504 509.3 493.3 520 480 520C466.7 520 456 509.3 456 496C456 482.7 466.7 472 480 472z" /></svg>
                         <span>Create Pull Request </span>
                       </button>
@@ -355,7 +418,7 @@ function ProjectDetail() {
                     <line x1="35" y1="60" x2="75" y2="60" stroke="#888888" strokeWidth="3" strokeLinecap="round" />
                     <line x1="35" y1="75" x2="60" y2="75" stroke="#888888" strokeWidth="3" strokeLinecap="round" />
 
-                    <text x="35" y="98" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#333333">MD</text>
+                    <text x="35" y="98" fontFamily="Arial, sans-serif" fontSize="12" fontWeight="bold" fill="#333333">MD</text>
                   </svg>
 
                   <span>README</span>
@@ -381,7 +444,7 @@ function ProjectDetail() {
                   <line x1="12" y1="16" x2="12.01" y2="16" />
                 </svg>
                 <span>Issues</span>
-                <span className='w-4 h-4 text-[9px] bg-gray-200 rounded-full flex items-center justify-center font-bold text-gray-600'>12</span>
+                <span className='w-4 h-4 text-[9px] bg-gray-200 rounded-full flex items-center justify-center font-bold text-gray-600'>{issues.length}</span>
               </div>
 
               {/* Discussions-btn */}
@@ -394,10 +457,10 @@ function ProjectDetail() {
 
               {/* pull-request */}
               {isMember && isOwner &&
-                <div className={`pull-request-btn { ${activeTab === "pull-request" ? "tab-active" : ""}`} onClick={() => setActiveTab("pull-request")}>
+                <div className={`pull-request-btn ${activeTab === "pull-request" ? "tab-active" : ""}`} onClick={() => setActiveTab("pull-request")}>
                   <svg xmlns="http://www.w3.org/2000/svg" width={14} height={14} viewBox="0 0 640 640"><path d="M392 88C392 78.3 386.2 69.5 377.2 65.8C368.2 62.1 357.9 64.2 351 71L295 127C285.6 136.4 285.6 151.6 295 160.9L351 216.9C357.9 223.8 368.2 225.8 377.2 222.1C386.2 218.4 392 209.7 392 200L392 176L416 176C433.7 176 448 190.3 448 208L448 422.7C419.7 435 400 463.2 400 496C400 540.2 435.8 576 480 576C524.2 576 560 540.2 560 496C560 463.2 540.3 435 512 422.7L512 208C512 155 469 112 416 112L392 112L392 88zM136 144C136 130.7 146.7 120 160 120C173.3 120 184 130.7 184 144C184 157.3 173.3 168 160 168C146.7 168 136 157.3 136 144zM192 217.3C220.3 205 240 176.8 240 144C240 99.8 204.2 64 160 64C115.8 64 80 99.8 80 144C80 176.8 99.7 205 128 217.3L128 422.6C99.7 434.9 80 463.1 80 495.9C80 540.1 115.8 575.9 160 575.9C204.2 575.9 240 540.1 240 495.9C240 463.1 220.3 434.9 192 422.6L192 217.3zM136 496C136 482.7 146.7 472 160 472C173.3 472 184 482.7 184 496C184 509.3 173.3 520 160 520C146.7 520 136 509.3 136 496zM480 472C493.3 472 504 482.7 504 496C504 509.3 493.3 520 480 520C466.7 520 456 509.3 456 496C456 482.7 466.7 472 480 472z" /></svg>
                   <span>Pull Request</span>
-                  <span className='w-4 h-4 text-[9px] bg-gray-200 rounded-full flex items-center justify-center font-bold text-gray-600'>5</span>
+                  <span className='w-4 h-4 text-[9px] bg-gray-200 rounded-full flex items-center justify-center font-bold text-gray-600'>{pulls.length}</span>
                 </div>
               }
 
@@ -598,6 +661,29 @@ function ProjectDetail() {
                         </div>
                       </div>
 
+                      {/* Recent Commits */}
+                      <div className="commits-section">
+                        <div className="commits-header">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2D3748" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="3" />
+                            <line x1="3" y1="12" x2="9" y2="12" />
+                            <line x1="15" y1="12" x2="21" y2="12" />
+                          </svg>
+                          <span className="commits-title">Recent Commits</span>
+                        </div>
+                        {commitsLoading && <div className="commits-empty">Loading commits...</div>}
+                        {!commitsLoading && commits.length === 0 && (
+                          <div className="commits-empty">No commits found, or no repo linked.</div>
+                        )}
+                        {!commitsLoading && commits.map(c => (
+                          <a key={c.sha} href={c.url} target="_blank" rel="noreferrer" className="commit-row">
+                            <span className="commit-sha">{c.sha}</span>
+                            <span className="commit-message">{c.message}</span>
+                            <span className="commit-meta">{c.author} · {new Date(c.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}</span>
+                          </a>
+                        ))}
+                      </div>
+
                     </div>
 
                     <div className="project-detail-div">
@@ -657,7 +743,7 @@ function ProjectDetail() {
                             <span>Last updated</span>
                           </div>
                           <div className="right-detail">
-                            <span>1 day ago</span>
+                            <span>{lastCommitLabel}</span>
                           </div>
                         </div>
                         <div className="line-4">
@@ -671,16 +757,17 @@ function ProjectDetail() {
                             <span>GitHub Repository</span>
                           </div>
                           <div className="right-detail">
-                            <a href="#">github.com/kaivalyakulkarni/
-                              student-performance-analysis
-                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-
-                                <polyline points="15 3 21 3 21 9" />
-                                <line x1="10" y1="14" x2="21" y2="3" />
-                              </svg>
-
-                            </a>
+                            {project.github_repo_url
+                              ? <a href={project.github_repo_url} target="_blank" rel="noreferrer">
+                                  {project.github_repo_url.replace("https://github.com/", "")}
+                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                                    <polyline points="15 3 21 3 21 9" />
+                                    <line x1="10" y1="14" x2="21" y2="3" />
+                                  </svg>
+                                </a>
+                              : <span className="text-gray-400">No repo linked</span>
+                            }
                           </div>
                         </div>
                         <div className="line-5">
@@ -747,6 +834,65 @@ function ProjectDetail() {
                 </div>
               )}
 
+              {activeTab === "readme" && (
+                <div className="readme-div">
+                  {readmeLoading && <div className="readme-loading">Loading README...</div>}
+                  {readmeError && <div className="readme-error">{readmeError}</div>}
+                  {!readmeLoading && !readmeError && readme && (
+                    <div className="readme-markdown">
+                      <ReactMarkdown>{readme}</ReactMarkdown>
+                    </div>
+                  )}
+                  {!readmeLoading && !readmeError && !readme && (
+                    <div className="readme-empty">No README found for this repository.</div>
+                  )}
+                </div>
+              )}
+
+              {activeTab === "issues" && (
+                <div className="issues-div">
+                  {issuesLoading && <div className="issues-loading">Loading issues...</div>}
+                  {!issuesLoading && issues.length === 0 && (
+                    <div className="issues-empty">No open issues, or no repo linked.</div>
+                  )}
+{!issuesLoading && issues.map(issue => (
+                    <a key={issue.number} href={issue.url} target="_blank" rel="noreferrer" className="issue-row">
+                      <div className="issue-row-left">
+                        <span className="issue-number">#{issue.number}</span>
+                        <span className="issue-title">{issue.title}</span>
+                        <span className={`issue-state issue-state--${issue.state}`}>{issue.state}</span>
+                      </div>
+                      <div className="issue-row-right">
+                        <span className="issue-author">{issue.author}</span>
+                        <span className="issue-date">{new Date(issue.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                        <span className="issue-comments">{issue.comments} comments</span>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              )}
+
+              {activeTab === "pull-request" && (
+                <div className="pulls-div">
+                  {pullsLoading && <div className="pulls-loading">Loading pull requests...</div>}
+                  {!pullsLoading && pulls.length === 0 && (
+                    <div className="pulls-empty">No open pull requests, or no repo linked.</div>
+                  )}
+{!pullsLoading && pulls.map(pr => (
+                    <a key={pr.number} href={pr.url} target="_blank" rel="noreferrer" className="pull-row">
+                      <div className="pull-row-left">
+                        <span className="pull-number">#{pr.number}</span>
+                        <span className="pull-title">{pr.title}</span>
+                        <span className={`pull-state pull-state--${pr.state}`}>{pr.state}</span>
+                      </div>
+                      <div className="pull-row-right">
+                        <span className="pull-author">{pr.author}</span>
+                        <span className="pull-date">{new Date(pr.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              )}
 
             </div>
 
@@ -1035,12 +1181,12 @@ function ProjectDetail() {
                     </div>
                     <div className="cell-2">
                       <span className="cell-head">Open Issues</span>
-                      <span className="cell-data">12</span>
+                      <span className="cell-data">{issues.length}</span>
                       <span className="cell-info">Viewed 2h ago</span>
                     </div>
                     <div className="cell-3">
                       <span className="cell-head">Last Commit</span>
-                      <span className=" font-semibold text-[16px]">1 day ago</span>
+                      <span className=" font-semibold text-[16px]">{lastCommitLabel}</span>
                     </div>
                     <div className="cell-4">
                       <span className="cell-head">Response Time</span>

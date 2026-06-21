@@ -11,3 +11,22 @@ export const updateSkills = (token, githubId, data) => {
         headers:{'Authorization': `Bearer ${token}`}
     });
 }
+
+
+export const getGithubContributions = (token) => {
+  return api.get('/api/users/me/github-contributions', {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+}
+
+export const getGithubStats = (token) => {
+  return api.get('/api/users/me/github-stats', {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+}
+
+export const getGithubLanguages = (token) => {
+  return api.get('/api/users/me/github-languages', {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+}

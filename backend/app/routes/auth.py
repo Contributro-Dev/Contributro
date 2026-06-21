@@ -22,7 +22,6 @@ def github_login():
     url = f"https://github.com/login/oauth/authorize?client_id={client_id}&scope=read:user,user:email"
     return redirect(url)
    
-
 @auth_bp.route("/github/callback")
 def github_callback():
     code = request.args.get("code")
@@ -35,9 +34,6 @@ def github_callback():
     },
     headers={"Accept": "application/json"})
     token_data = token_response.json()
-    
-    # print("Received token data:", token_data)
-    # return jsonify(token_data)
 
     access_token = token_data.get("access_token")
     if not access_token:
@@ -48,9 +44,7 @@ def github_callback():
         "Accept": "application/json"
     })
     user_data = user_response.json()
-    
-    # return jsonify(user_data)
-    
+
     user = {
         "github_id": user_data.get("id"),
         "username": user_data.get("login"),
@@ -59,15 +53,25 @@ def github_callback():
         "email": user_data.get("email"),
         "bio": user_data.get("bio"),
         "github_url": user_data.get("html_url"),
-        "public_repos": user_data.get("public_repos")
+        "public_repos": user_data.get("public_repos"),
+        "github_access_token": access_token  # store for later API calls
     }
 
     existing_user = db.users.find_one({"github_id": user["github_id"]})
     if not existing_user:
         db.users.insert_one(user)
-    
-    user.pop("_id", None)    
-        
+    else:
+        db.users.update_one(
+            {"github_id": user["github_id"]},
+            {"$set": {
+                "github_access_token": access_token,
+                "avatar_url": user["avatar_url"],
+                "name": user["name"],
+                "bio": user["bio"],
+                "public_repos": user["public_repos"]
+            }}
+        )
+
     jwt_token = create_access_token(identity=str(user["github_id"]))
     return redirect(
         f"http://localhost:5173/dashboard?token={jwt_token}&github_id={user['github_id']}"

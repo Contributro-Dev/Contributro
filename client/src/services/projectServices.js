@@ -19,3 +19,20 @@ export const joinProject = (projectId, token) => {
         headers:{'Authorization': `Bearer ${token}`}
     });
 }
+
+
+export const getReadme = (projectId) => {
+    return api.get(`/api/projects/${projectId}/readme`);
+}
+
+export const getCommits = (projectId) => {
+    return api.get(`/api/projects/${projectId}/commits`);
+}
+
+export const getIssues = (projectId) => {
+    return api.get(`/api/projects/${projectId}/issues`);
+}
+
+export const getPulls = (projectId) => {
+    return api.get(`/api/projects/${projectId}/pulls`);
+}

@@ -1645,3 +1645,39 @@
 .view-all-link:hover {
     transform: translateX(5%);
 }
+
+
+.commits-section { margin-top: 20px; }
+.commits-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.commits-title { font-weight: 600; font-size: 14px; }
+.commit-row { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid #eee; font-size: 13px; text-decoration: none; color: inherit; }
+.commit-sha { font-family: monospace; color: #888; }
+.commit-message { flex: 1; }
+.commit-meta { color: #999; font-size: 12px; }
+.commits-empty, .readme-loading, .readme-error, .readme-empty,
+.issues-loading, .issues-empty, .pulls-loading, .pulls-empty { padding: 20px; color: #888; font-size: 14px; }
+.readme-markdown { padding: 16px; }
+.issue-row, .pull-row { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; text-decoration: none; color: inherit; }
+.issue-number, .pull-number { color: #888; margin-right: 8px; }
+.issue-comments, .pull-author { color: #888; font-size: 12px; }
+
+
+.issue-state, .pull-state { font-size: 11px; padding: 2px 8px; border-radius: 10px; margin-left: 8px; text-transform: capitalize; }
+.issue-state--open, .pull-state--open { background: #dcfce7; color: #15803d; }
+.issue-state--closed, .pull-state--closed { background: #fee2e2; color: #b91c1c; }
+.issue-date, .pull-date { color: #999; font-size: 12px; margin-right: 8px; }
+
+
+.issue-row-left,
+.pull-row-left {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.issue-row-right,
+.pull-row-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
