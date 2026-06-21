@@ -2,12 +2,11 @@ import { useEffect, useContext, useState, useRef } from "react";
 import { AuthContext } from "../context/AuthContext.jsx";
 import { getUser } from "../services/authServices.js";
 import { getAllProjects, joinProject } from "../services/projectServices.js";
+import { getRecommendedProjects } from "../services/recommendationServices.js";
 import SkillsPopUp from "../components/SkillsPopUp.jsx";
 import Sidebar from "../components/Sidebar.jsx";
 import "./Dashboard.css";
 import { useNavigate } from "react-router-dom";
-// import api if you are using api.patch()
-// import api from "../services/api.js"
 
 function Dashboard() {
 
@@ -16,6 +15,7 @@ function Dashboard() {
   const { login, user, token, logout } = useContext(AuthContext);
 
   const [projects, setProjects] = useState([]);
+  const [recommendedProjects, setRecommendedProjects] = useState([]);
 
 
   const [showSkillPopup, setShowSkillPopup] = useState(false)
@@ -23,6 +23,8 @@ function Dashboard() {
   const [showProfileMenu, setShowProfileMenu] = useState(false)
 
   const [scrolled, setScrolled] = useState(false)
+
+  const navigate = useNavigate()
 
   const handleScroll = () => {
     setScrolled(cardsRef.current.scrollLeft > 10)
@@ -74,6 +76,18 @@ function Dashboard() {
   }, []);
 
   // ─────────────────────────────────────────────
+  // Load AI recommendations
+  // ─────────────────────────────────────────────
+  useEffect(() => {
+    if (!token) return;
+    getRecommendedProjects(token).then((response) => {
+      setRecommendedProjects(response.data.recommendations);
+    }).catch((error) => {
+      console.error("Failed to load recommendations:", error);
+    });
+  }, [token]);
+
+  // ─────────────────────────────────────────────
   // Join project
   // ─────────────────────────────────────────────
   const handleJoinProject = (projectId) => {
@@ -88,7 +102,7 @@ function Dashboard() {
     })
   }
 
- 
+
 
   const firstLetter = user?.username?.charAt(0).toUpperCase() || "U";
 
@@ -106,7 +120,7 @@ function Dashboard() {
           <input type="text" placeholder="Search projects, skills, or users..." className="search-bar" />
           <div className="nav-right">
             <button className="theme-toggle">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="4" />
                 <path d="M12 2v2" />
                 <path d="M12 20v2" />
@@ -119,7 +133,7 @@ function Dashboard() {
               </svg>
             </button>
             <button className="notifications">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
                 <path d="M13.73 21a2 2 0 0 1-3.46 0" />
               </svg>
@@ -149,7 +163,7 @@ function Dashboard() {
             <div className="dashboard-stats">
               <div className="dashboard-stat-card">
                 <div className="stat-icon-1">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#4F46E5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#4F46E5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2z" />
                   </svg>
                 </div>
@@ -161,7 +175,7 @@ function Dashboard() {
               </div>
               <div className="dashboard-stat-card">
                 <div className="stat-icon-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                     <circle cx="9" cy="7" r="4" />
                     <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
@@ -177,7 +191,7 @@ function Dashboard() {
               </div>
               <div className="dashboard-stat-card">
                 <div className="stat-icon-3">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                   </svg>
 
@@ -190,14 +204,18 @@ function Dashboard() {
               </div>
               <div className="dashboard-stat-card">
                 <div className="stat-icon-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
                     <polyline points="16 7 22 7 22 13" />
                   </svg>
 
                 </div>
                 <div className="stat-info">
-                  <span className="stat-number">96%</span>
+                  <span className="stat-number">
+                    {recommendedProjects.length > 0
+                      ? Math.round(recommendedProjects.reduce((sum, p) => sum + p.match_score, 0) / recommendedProjects.length)
+                      : 0}%
+                  </span>
                   <span className="stat-label">Match Score</span>
                   <span className="stat-sublabel">Top 10% of developers</span>
                 </div>
@@ -223,207 +241,49 @@ function Dashboard() {
                 {scrolled && <div className="cards-fade-left" />}
 
                 <div className="reconmended-projects-cards" ref={cardsRef} onScroll={handleScroll}>
-                  <div className="project-card">
-                    <div className="card-header card-bg-1">
-                      <div className="icon-wraper" style={{ background: 'linear-gradient(135deg, #393989, #0c0f11)' }}>
-                        <svg width="32" height="32" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <defs>
-                            <linearGradient id="chartGrad" x1="0" y1="0" x2="48" y2="48">
-                              <stop offset="0%" stop-color="#b1c9fe" />
-                              <stop offset="100%" stop-color="#b1c9fe" />
-                            </linearGradient>
-                          </defs>
-
-                          <rect x="8" y="24" width="6" height="14" rx="2" fill="url(#chartGrad)" />
-                          <rect x="19" y="16" width="6" height="22" rx="2" fill="url(#chartGrad)" />
-                          <rect x="30" y="10" width="6" height="28" rx="2" fill="url(#chartGrad)" />
-                        </svg>
+                  {recommendedProjects.length === 0 ? (
+                    <p style={{ padding: '12px', color: '#9ca3af' }}>
+                      No recommendations yet — add some skills to your profile.
+                    </p>
+                  ) : (
+                    recommendedProjects.map(project => (
+                      <div key={project._id} className="project-card" onClick={() => navigate(`/projects/${project._id}`)}>
+                        <div className="card-header card-bg-1">
+                          <div className="icon-wraper" style={{ background: 'linear-gradient(135deg, #393989, #0c0f11)' }}>
+                            <svg width="32" height="32" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <rect x="8" y="24" width="6" height="14" rx="2" fill="#b1c9fe" />
+                              <rect x="19" y="16" width="6" height="22" rx="2" fill="#b1c9fe" />
+                              <rect x="30" y="10" width="6" height="28" rx="2" fill="#b1c9fe" />
+                            </svg>
+                          </div>
+                          <button className="bookmark-btn" onClick={(e) => e.stopPropagation()}>
+                            <svg width="18" height="18" fill="none" stroke="#fff" strokeWidth="2" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" /></svg>
+                          </button>
+                        </div>
+                        <div className="card-body">
+                          <span className="project-card-title">{project.title}</span>
+                          <span className="project-card-desc">{project.description}</span>
+                          <div className="project-card-skills">
+                            {project.required_skills?.slice(0, 3).map(skill => (
+                              <div key={skill} className="skill-tag">{skill}</div>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="card-footer">
+                          <div className="member-container">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                              <circle cx="9" cy="7" r="4" />
+                              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                            </svg>
+                            <span className="member-number">{project.members?.length || 0}/{project.team_size || '?'}</span>
+                          </div>
+                          <span className="match-badge">{project.match_score}% match</span>
+                        </div>
                       </div>
-                      <button className="bookmark-btn">
-                        <svg width="18" height="18" fill="none" stroke="#fff" strokeWidth="2" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" /></svg>
-                      </button>
-                    </div>
-                    <div className="card-body">
-                      <span className="project-card-title">DevFlow – Open Source Workflow Automation</span>
-                      <span className="project-card-desc">Automate developer workflows and boost team productivity.</span>
-                      <div className="project-card-skills">
-                        <div className="skill-tag">Python</div>
-                        <div className="skill-tag">React</div>
-                        <div className="skill-tag">Mongodb</div>
-                      </div>
-                    </div>
-                    <div className="card-footer">
-                      <div className="star-container">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                        </svg>
-                        <span className="card-star-count">128</span>
-                      </div>
-                      <div className="member-container">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                          <circle cx="9" cy="7" r="4" />
-                          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                        </svg>
-                        <span className="member-number">5/8</span>
-                      </div>
-                      <span className="match-badge">98% match</span>
-                    </div>
-                  </div>
-                  <div className="project-card">
-                    <div className="card-header card-bg-2">
-                      <div className="icon-wraper" style={{ background: 'linear-gradient(135deg, #5e8939, #0c110d)' }}>
-                        <svg width="30" height="30" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <defs>
-                            <linearGradient id="leafGrad" x1="0" y1="0" x2="48" y2="48">
-                              <stop offset="0%" stop-color="#22C55E" />
-                              <stop offset="100%" stop-color="#10B981" />
-                            </linearGradient>
-                          </defs>
-
-                          <path d="M38 10C24 10 12 18 12 30C12 36 16 40 22 40C34 40 38 28 38 10Z"
-                            fill="url(#leafGrad)" />
-
-                          <path d="M14 24C20 24 26 28 32 36"
-                            stroke="white"
-                            stroke-width="3"
-                            stroke-linecap="round" />
-                        </svg>
-                      </div>
-                      <button className="bookmark-btn">
-                        <svg width="18" height="18" fill="none" stroke="#fff" strokeWidth="2" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" /></svg>
-                      </button>
-                    </div>
-                    <div className="card-body">
-                      <span className="project-card-title">EcoTrack – Sustainability Tracking Web App</span>
-                      <span className="project-card-desc">Track carbon footprint, set goals, and visualize impact.</span>
-                      <div className="project-card-skills">
-                        <div className="skill-tag">Node</div>
-                        <div className="skill-tag">Express</div>
-                        <div className="skill-tag">Tailwind</div>
-                      </div>
-                    </div>
-                    <div className="card-footer">
-                      <div className="star-container">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                        </svg>
-                        <span className="card-star-count">95</span>
-                      </div>
-                      <div className="member-container">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                          <circle cx="9" cy="7" r="4" />
-                          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                        </svg>
-                        <span className="member-number">5/6</span>
-                      </div>
-                      <span className="match-badge">94% match</span>
-                    </div>
-                  </div>
-                  <div className="project-card">
-                    <div className="card-header card-bg-3">
-                      <div className="icon-wraper" style={{ background: 'linear-gradient(135deg, #5c3989, #0f0c11)' }}>
-                        <svg width="28" height="28" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <defs>
-                            <linearGradient id="gameGrad" x1="0" y1="0" x2="48" y2="48">
-                              <stop offset="0%" stop-color="#6366F1" />
-                              <stop offset="100%" stop-color="#8B5CF6" />
-                            </linearGradient>
-                          </defs>
-
-                          <path d="M14 16H34C40 16 44 20 44 26C44 32 40 38 35 38C32 38 30 36 28 33H20C18 36 16 38 13 38C8 38 4 32 4 26C4 20 8 16 14 16Z"
-                            fill="url(#gameGrad)" />
-
-                          <path d="M15 26H23" stroke="white" stroke-width="3" stroke-linecap="round" />
-                          <path d="M19 22V30" stroke="white" stroke-width="3" stroke-linecap="round" />
-
-                          <circle cx="31" cy="24" r="2" fill="white" />
-                          <circle cx="35" cy="28" r="2" fill="white" />
-                        </svg>
-                      </div>
-                      <button className="bookmark-btn">
-                        <svg width="18" height="18" fill="none" stroke="#fff" strokeWidth="2" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" /></svg>
-                      </button>
-                    </div>
-                    <div className="card-body">
-                      <span className="project-card-title">GameHub – Multiplayer Game Platform</span>
-                      <span className="project-card-desc">Real-time multiplayer platform with chat, rooms and leaderboards</span>
-                      <div className="project-card-skills">
-                        <div className="skill-tag">C++</div>
-                        <div className="skill-tag">WebSokets</div>
-                        <div className="skill-tag">React</div>
-                      </div>
-                    </div>
-                    <div className="card-footer">
-                      <div className="star-container">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                        </svg>
-                        <span className="card-star-count">75</span>
-                      </div>
-                      <div className="member-container">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                          <circle cx="9" cy="7" r="4" />
-                          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                        </svg>
-                        <span className="member-number">3/6</span>
-                      </div>
-                      <span className="match-badge">92% match</span>
-                    </div>
-                  </div>
-                  <div className="project-card">
-                    <div className="card-header card-bg-1">
-                      <div className="icon-wraper" style={{ background: 'linear-gradient(135deg, #393989, #0c0f11)' }}>
-                        <svg width="32" height="32" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <defs>
-                            <linearGradient id="chartGrad" x1="0" y1="0" x2="48" y2="48">
-                              <stop offset="0%" stop-color="#b1c9fe" />
-                              <stop offset="100%" stop-color="#b1c9fe" />
-                            </linearGradient>
-                          </defs>
-
-                          <rect x="8" y="24" width="6" height="14" rx="2" fill="url(#chartGrad)" />
-                          <rect x="19" y="16" width="6" height="22" rx="2" fill="url(#chartGrad)" />
-                          <rect x="30" y="10" width="6" height="28" rx="2" fill="url(#chartGrad)" />
-                        </svg>
-                      </div>
-                      <button className="bookmark-btn">
-                        <svg width="18" height="18" fill="none" stroke="#fff" strokeWidth="2" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" /></svg>
-                      </button>
-                    </div>
-                    <div className="card-body">
-                      <span className="project-card-title">DevFlow – Open Source Workflow Automation</span>
-                      <span className="project-card-desc">Automate developer workflows and boost team productivity.</span>
-                      <div className="project-card-skills">
-                        <div className="skill-tag">Python</div>
-                        <div className="skill-tag">React</div>
-                        <div className="skill-tag">Mongodb</div>
-                      </div>
-                    </div>
-                    <div className="card-footer">
-                      <div className="star-container">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                        </svg>
-                        <span className="card-star-count">128</span>
-                      </div>
-                      <div className="member-container">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                          <circle cx="9" cy="7" r="4" />
-                          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                        </svg>
-                        <span className="member-number">5/8</span>
-                      </div>
-                      <span className="match-badge">98% match</span>
-                    </div>
-                  </div>
+                    ))
+                  )}
                 </div>
 
                 <button className="carousel-btn carousel-btn-right" onClick={scrollRight}>
@@ -477,8 +337,6 @@ function Dashboard() {
           </div>
           {/* right side */}
           <div className="right-panel">
-            
-            
 
             {/* Trending projects */}
             <div className="trending-projects">
@@ -494,7 +352,7 @@ function Dashboard() {
                     <span className="trending-skills">Python, FastAPI, React</span>
                   </div>
                   <div className="trending-rating">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#FFD700" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#FFD700" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                     </svg>
                     <span className="rating-count">153</span>
@@ -507,7 +365,7 @@ function Dashboard() {
                     <span className="trending-skills">MDX, Tailwind , React</span>
                   </div>
                   <div className="trending-rating">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#FFD700" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#FFD700" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                     </svg>
                     <span className="rating-count">113</span>
@@ -520,7 +378,7 @@ function Dashboard() {
                     <span className="trending-skills">Next.js, Tailwind, Typscript</span>
                   </div>
                   <div className="trending-rating">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#FFD700" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#FFD700" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                     </svg>
                     <span className="rating-count">69</span>
