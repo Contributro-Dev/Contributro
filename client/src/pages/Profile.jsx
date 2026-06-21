@@ -53,7 +53,7 @@ const INTERESTS = [
   { label: "Cloud Computing", emoji: "☁️", bg: "#f0f9ff" },
   { label: "UI/UX", emoji: "🎨", bg: "#fdf2f8" },
 ];
-
+ 
 const RECENT_ACTIVITY = [
   { time: "Today", text: "Updated skills", icon: FiCode, color: "#6366f1" },
   { time: "Yesterday", text: "Joined Healthcare Chatbot", icon: FiUserPlus, color: "#10b981" },

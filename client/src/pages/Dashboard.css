@@ -950,7 +950,7 @@
 /* ── SCROLLBAR ── */
 .github-heatmap::-webkit-scrollbar {
     height: 2px;
-}
+} 
 
 .github-heatmap::-webkit-scrollbar-track {
     background: #f6f6f3;

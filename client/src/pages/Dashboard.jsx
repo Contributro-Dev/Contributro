@@ -477,42 +477,8 @@ function Dashboard() {
           </div>
           {/* right side */}
           <div className="right-panel">
-            {/* contribution hashmap */}
-            <div className="github-hash-tab">
-              <span className="github-hash-header">
-                Your Github Contributions
-                <a href="#" className="view-all-link">view All {"->"}</a>
-              </span>
-              <div className="contribution-count">
-                <span className="contribution-count-number">123</span>
-                <span className="contribution-count-label">Contributions</span>
-                <select className="contribution-year-selector">
-                  <option value="2026">2026</option>
-                  <option value="2025">2025</option>
-                  <option value="2024">2024</option>
-                  <option value="2023">2023</option>
-                  <option value="2022">2022</option>
-                </select>
-              </div>
-              <div className="github-hash-content">
-                <div className="github-heatmap">
-                  {Array.from({ length: 52 }).map((_, weekIndex) => (
-                    <div key={weekIndex} className="heatmap-column">
-                      {Array.from({ length: 7 }).map((_, dayIndex) => {
-                        const level = Math.floor(Math.random() * 5);
-                        return (
-                          <div
-                            key={dayIndex}
-                            className={`heatmap-cell level-${level}`}
-                          />
-                        );
-                      })}
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <span className="contribution-count-label">Longest streak: 12 days</span>
-            </div>
+            
+            
 
             {/* Trending projects */}
             <div className="trending-projects">

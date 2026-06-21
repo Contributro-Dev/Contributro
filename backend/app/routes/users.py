@@ -36,3 +36,5 @@ def update_user_skills(github_id):
     if update_user.matched_count:
         return jsonify({"message": "User skills updated successfully"})
     return jsonify({"error": "User not found"}), 404
+
+
