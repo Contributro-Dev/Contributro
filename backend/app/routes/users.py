@@ -51,6 +51,7 @@ def update_user_skills(github_id):
     return jsonify({"error": "User not found"}), 404
 
 
+
 # ─────────────────────────────────────────────
 # Real GitHub data routes
 # ─────────────────────────────────────────────
@@ -217,3 +218,4 @@ def github_languages():
     ]
 
     return jsonify({"languages": languages[:6]})
+
