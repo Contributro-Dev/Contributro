@@ -161,16 +161,18 @@ function Dashboard() {
             <span className="dashboard-greeting">Good Morning, {user?.username || "User"}</span>
             <span className="dashboard-welcome-msg">Lets build something incredible together today</span>
             <div className="dashboard-stats">
-              <div className="dashboard-stat-card">
+<div className="dashboard-stat-card">
                 <div className="stat-icon-1">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#4F46E5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2z" />
                   </svg>
                 </div>
                 <div className="stat-info">
-                  <span className="stat-number">12</span>
+                  <span className="stat-number">
+                    {projects.filter(p => p.members?.map(String).includes(String(user?.github_id))).length}
+                  </span>
                   <span className="stat-label">Active Projects</span>
-                  <span className="stat-sublabel">3 updates today</span>
+                  <span className="stat-sublabel">Projects you've joined</span>
                 </div>
               </div>
               <div className="dashboard-stat-card">
