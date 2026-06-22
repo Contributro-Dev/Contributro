@@ -1,0 +1,54 @@
+.public-profile-page {
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+.public-profile-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 32px;
+  background: #fff;
+  border-bottom: 1px solid #f1f5f9;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.public-profile-brand {
+  font-size: 18px;
+  font-weight: 800;
+  color: #6366f1;
+  text-decoration: none;
+  letter-spacing: -0.3px;
+}
+
+.public-profile-layout {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+.public-profile-loading,
+.public-profile-notfound {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 12px;
+  color: #64748b;
+  font-size: 15px;
+}
+
+.public-profile-notfound h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.public-profile-notfound p {
+  margin: 0;
+  font-size: 14px;
+}

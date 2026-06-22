@@ -1,33 +1,35 @@
-import { Routes, Route, BrowserRouter } from 'react-router-dom';
-import { useContext } from 'react';
-import { AuthContext } from './context/AuthContext.jsx';
-import Home from './pages/home.jsx';  
-import Login from './pages/Login.jsx';
-import Dashboard from './pages/Dashboard.jsx';
-import Explore from './pages/Explore.jsx'
-import Projects from './pages/Projects.jsx';
-import ProjectDetail from './pages/ProjectDetail.jsx';
-import CreateProject from './pages/CreateProject.jsx';
-import Profile from './pages/Profile.jsx';
-import Navbar from './components/Navbar.jsx';
-import Bookmarks from './pages/Bookmarks';
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useContext } from "react";
+import { AuthContext } from "./context/AuthContext.jsx";
+import AuthProvider from "./context/AuthContext.jsx";
+import Dashboard from "./pages/Dashboard.jsx";
+import Explore from "./pages/Explore.jsx";
+import Profile from "./pages/Profile.jsx";
+import PublicProfile from "./pages/PublicProfile.jsx";
+import ProjectDetail from "./pages/ProjectDetail.jsx";
+import CreateProject from "./pages/CreateProject.jsx";
+import Bookmarks from "./pages/Bookmarks.jsx";
 
-function App() {
-  const { user } = useContext(AuthContext)
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/explore" element={<Explore />}/>
-        <Route path="/projects" element={<Projects />} />
-        <Route path="/projects/:id" element={<ProjectDetail />} />
-        <Route path="/create-project" element={<CreateProject />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/bookmarks" element={<Bookmarks />} />
-      </Routes>
-    </BrowserRouter>
-  )
+function PrivateRoute({ children }) {
+  const { token } = useContext(AuthContext);
+  return token ? children : <Navigate to="/login" replace />;
 }
-export default App;
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/profile/:username" element={<PublicProfile />} />
+          <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+          <Route path="/explore" element={<PrivateRoute><Explore /></PrivateRoute>} />
+          <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+          <Route path="/projects/:id" element={<PrivateRoute><ProjectDetail /></PrivateRoute>} />
+          <Route path="/create-project" element={<PrivateRoute><CreateProject /></PrivateRoute>} />
+          <Route path="/bookmarks" element={<PrivateRoute><Bookmarks /></PrivateRoute>} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
+  );
+}
