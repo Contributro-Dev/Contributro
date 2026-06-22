@@ -11,6 +11,7 @@ import CreateProject from "./pages/CreateProject.jsx";
 import Bookmarks from "./pages/Bookmarks.jsx";
 import Requests from "./pages/Requests.jsx";
 import Projects from "./pages/Projects.jsx"
+import Login from "./pages/Login.jsx";
 
 function PrivateRoute({ children }) {
   const { token } = useContext(AuthContext);
@@ -22,15 +23,16 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+          <Route path="/login" element ={<Login />} />
           <Route path="/profile/:username" element={<PublicProfile />} />
-          <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-          <Route path="/explore" element={<PrivateRoute><Explore /></PrivateRoute>} />
-          <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
-          <Route path ="/projects" element={<PrivateRoute><Projects /></PrivateRoute>}/>
-          <Route path="/projects/:id" element={<PrivateRoute><ProjectDetail /></PrivateRoute>} />
-          <Route path="/create-project" element={<PrivateRoute><CreateProject /></PrivateRoute>} />
-          <Route path="/bookmarks" element={<PrivateRoute><Bookmarks /></PrivateRoute>} />
-          <Route path="/requests" element={<PrivateRoute><Requests /></PrivateRoute>}/>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/explore" element={<Explore />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path ="/projects" element={<Projects />}/>
+          <Route path="/projects/:id" element={<ProjectDetail />} />
+          <Route path="/create-project" element={<CreateProject />} />
+          <Route path="/bookmarks" element={<Bookmarks />} />
+          <Route path="/requests" element={<Requests />}/>
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </BrowserRouter>
