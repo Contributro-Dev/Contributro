@@ -61,3 +61,20 @@ export const getPulls = (projectId, token) => {
         headers: { 'Authorization': `Bearer ${token}` }
     });
 }
+
+export const getRecentActivity = (token) => {
+    return api.get('/api/projects/activity/recent', {
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
+}
+
+export const toggleStar = (projectId, token) => {
+    return api.put(`/api/projects/${projectId}/star`, {}, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
+}
+
+export const getTrendingProjects = () => {
+    return api.get('/api/projects/trending');
+}
+

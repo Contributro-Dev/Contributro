@@ -152,20 +152,19 @@ export default function PublicProfile() {
       )}
 
       <div className="public-profile-topbar">
+        
+        <Link to="/" className="public-profile-brand">Contributro</Link>
         <button
-          className="btn btn--outline"
+          className="btn "
           onClick={() => navigate(-1)}
           style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "13px", padding: "7px 14px" }}
         >
           <FiArrowLeft size={15} /> Back
         </button>
-        <Link to="/" className="public-profile-brand">Contributro</Link>
-        <Link to="/login" className="btn btn--primary" style={{ fontSize: "13px", padding: "7px 16px" }}>
-          Sign in
-        </Link>
       </div>
 
       <div className="profile-layout public-profile-layout">
+        
         <div className="profile-center">
           <section className="card profile-header-card">
             <div className="profile-header-left">

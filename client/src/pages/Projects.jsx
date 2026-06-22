@@ -1,6 +1,6 @@
 import { useEffect, useContext, useState, useRef } from "react";
 import { AuthContext } from "../context/AuthContext.jsx";
-import { getAllProjects, joinProject } from "../services/projectServices.js";
+import { getAllProjects, joinProject, getMyJoinRequests, handleJoinRequest, toggleStar } from "../services/projectServices.js";
 import Sidebar from "../components/Sidebar.jsx";
 import { useNavigate } from 'react-router-dom'
 import "./Projects.css";
@@ -14,6 +14,7 @@ function Projects() {
   const [filter, setFilter] = useState("all")
   const [viewMode, setViewMode] = useState("grid")
   const [searchQuery, setSearchQuery] = useState("")
+  const [joinRequests, setJoinRequests] = useState([]);
 
   const navigate = useNavigate()
 
@@ -41,6 +42,41 @@ function Projects() {
     })
   }
 
+  const handleRequestAction = (projectId, requestId, action) => {
+    handleJoinRequest(projectId, requestId, action, token).then(() => {
+      setJoinRequests(prev =>
+        prev.map(req =>
+          req._id === requestId ? { ...req, status: action === "approve" ? "approved" : "rejected" } : req
+        )
+      );
+    }).catch(err => console.error(err));
+  };
+
+  const handleToggleStar = (e, projectId) => {
+    e.stopPropagation();
+    toggleStar(projectId, token).then(response => {
+      setProjects(prev => prev.map(p =>
+        p._id === projectId ? { ...p, stars: response.data.star_count, is_starred: response.data.starred } : p
+      ));
+    }).catch(err => console.error(err));
+  };
+
+  useEffect(() => {
+    getAllProjects().then((response) => {
+      setProjects(response.data);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!token) return;
+    getMyJoinRequests(token).then((response) => {
+      setJoinRequests(response.data);
+    }).catch((error) => {
+      console.error(error);
+    });
+  }, [token]);
+
+  const pendingJoinRequests = joinRequests.filter(r => r.status === "pending");
   const createdProjects = projects.filter(p => String(p.owner_github_id) === String(user.github_id))
   const joinedProjects = projects.filter(p =>
     String(p.owner_github_id) !== String(user.github_id) &&
@@ -90,8 +126,10 @@ function Projects() {
 
             </button>
             <div className="profile-section" onClick={() => setShowProfileMenu(!showProfileMenu)}>
-              <div className="profile-pic">{firstLetter}</div>
-              <span>{user?.username || "User"}</span>
+              <div className="profile-pic">{user?.avatar
+                ? <img src={user.avatar} alt="avatar" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
+                : firstLetter}</div>
+              <span>{user?.name || user?.username || "User"}</span>
               <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <polyline points="6 9 12 15 18 9" />
               </svg>
@@ -131,7 +169,7 @@ function Projects() {
                   <span className="create-label">Create New Project</span>
                 </div>
               </div>
- 
+
             </div>
             <div className="projects-stats">
               <div className="projects-stat-card">
@@ -174,7 +212,7 @@ function Projects() {
 
                 </div>
                 <div className="stat-info">
-                  <span className="stat-number">3</span>
+                  <span className="stat-number">{pendingJoinRequests.length}</span>
                   <span className="stat-label">Pending Requests</span>
                   <span className="stat-sublabel">Awaiting response</span>
                 </div>
@@ -290,8 +328,17 @@ function Projects() {
                             </svg>
                             <span className="member-number">{project.members?.length || 0} members</span>
                           </div>
-                          <div className="star-container">
-                            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <div
+                            className="star-container"
+                            onClick={(e) => handleToggleStar(e, project._id)}
+                            style={{ cursor: "pointer" }}
+                          >
+                            <svg
+                              width="14" height="14"
+                              fill={project.is_starred ? "#F59E0B" : "none"}
+                              stroke={project.is_starred ? "#F59E0B" : "currentColor"}
+                              strokeWidth="2" viewBox="0 0 24 24"
+                            >
                               <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                             </svg>
                             <span className="card-star-count">{project.stars || 0}</span>
@@ -328,32 +375,34 @@ function Projects() {
             <div className="right-section">
               <div className="right-section-header">
                 <span className="right-section-title">Recent Join Requests</span>
-                <a className="view-all-link">View all</a>
+                <a className="view-all-link" onClick={() => navigate('/requests')} style={{ cursor: "pointer" }}>View all</a>
               </div>
-              {[
-                { name: "Rahul Sharma", role: "Backend Developer", skills: ["Python", "FastAPI", "PostgreSQL"], avatar: "R" },
-                { name: "Priya Kapoor", role: "ML Engineer", skills: ["Python", "TensorFlow", "PyTorch"], avatar: "P" },
-                { name: "Arjun Singh", role: "Full Stack Developer", skills: ["React", "Node.js", "MongoDB"], avatar: "A" },
-              ].map((req, i) => (
-                <div className="join-request-item" key={i}>
-                  <div className="request-avatar">{req.avatar}</div>
-                  <div className="request-info">
-                    <span className="request-name">{req.name}</span>
-                    <span className="request-role">{req.role}</span>
-                    <div className="request-skills">
-                      {req.skills.map(s => <span className="skill-tag" key={s}>{s}</span>)}
+              {pendingJoinRequests.length === 0 ? (
+                <span style={{ fontSize: "0.75rem", color: "#9ca3af" }}>No pending requests.</span>
+              ) : (
+                pendingJoinRequests.slice(0, 3).map((req) => (
+                  <div className="join-request-item" key={req._id}>
+                    <div className="request-avatar">{req.username?.charAt(0).toUpperCase() || "U"}</div>
+                    <div className="request-info">
+                      <span className="request-name">{req.username}</span>
+                      <span className="request-role">{req.project_title}</span>
+                      <div className="request-skills">
+                        {(req.required_skills || []).slice(0, 3).map(s => (
+                          <span className="skill-tag" key={s}>{s}</span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="request-actions">
+                      <button className="approve-btn" onClick={() => handleRequestAction(req.project_id, req._id, "approve")}>
+                        <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>
+                      </button>
+                      <button className="reject-btn" onClick={() => handleRequestAction(req.project_id, req._id, "reject")}>
+                        <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                      </button>
                     </div>
                   </div>
-                  <div className="request-actions">
-                    <button className="approve-btn">
-                      <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>
-                    </button>
-                    <button className="reject-btn">
-                      <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-                    </button>
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
 
             {/* Project Activity */}

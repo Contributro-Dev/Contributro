@@ -1,7 +1,7 @@
 import { useEffect, useContext, useState, useRef } from "react";
 import { AuthContext } from "../context/AuthContext.jsx";
 import { getUser } from "../services/authServices.js";
-import { getAllProjects, joinProject } from "../services/projectServices.js";
+import { getAllProjects, joinProject, getRecentActivity, getTrendingProjects, toggleStar } from "../services/projectServices.js";
 import { getRecommendedProjects } from "../services/recommendationServices.js";
 import SkillsPopUp from "../components/SkillsPopUp.jsx";
 import Sidebar from "../components/Sidebar.jsx";
@@ -23,6 +23,11 @@ function Dashboard() {
   const [showProfileMenu, setShowProfileMenu] = useState(false)
 
   const [scrolled, setScrolled] = useState(false)
+
+  const [activities, setActivities] = useState([]);
+  const [activitiesLoading, setActivitiesLoading] = useState(true);
+
+  const [trendingProjects, setTrendingProjects] = useState([]);
 
   const navigate = useNavigate()
 
@@ -87,6 +92,28 @@ function Dashboard() {
     });
   }, [token]);
 
+  //Load Recent Activity
+  useEffect(() => {
+    if (!token) return;
+    getRecentActivity(token).then((response) => {
+      setActivities(response.data);
+      setActivitiesLoading(false);
+    }).catch((error) => {
+      console.error("Failed to load recent activity:", error);
+      setActivitiesLoading(false);
+    });
+  }, [token]);
+
+  //trending projects
+
+  useEffect(() => {
+    getTrendingProjects().then((response) => {
+      setTrendingProjects(response.data);
+    }).catch((error) => {
+      console.error("Failed to load trending projects:", error);
+    });
+  }, []);
+
   // ─────────────────────────────────────────────
   // Join project
   // ─────────────────────────────────────────────
@@ -102,11 +129,81 @@ function Dashboard() {
     })
   }
 
+  const handleToggleStar = (e, projectId) => {
+    e.stopPropagation();
+    toggleStar(projectId, token).then(response => {
+      setRecommendedProjects(prev => prev.map(p =>
+        p._id === projectId ? { ...p, stars: response.data.star_count, is_starred: response.data.starred } : p
+      ));
+      fetchTrending();
+    }).catch(err => console.error(err));
+  };
+
+  const fetchTrending = () => {
+    getTrendingProjects().then((response) => {
+      setTrendingProjects(response.data);
+    }).catch((error) => {
+      console.error("Failed to load trending projects:", error);
+    });
+  };
+
+  useEffect(() => {
+    fetchTrending();
+  }, []);
 
 
   const firstLetter = user?.username?.charAt(0).toUpperCase() || "U";
 
+  function timeAgo(dateString) {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
 
+    if (seconds < 60) return "just now";
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes} minute${minutes !== 1 ? "s" : ""} ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours} hour${hours !== 1 ? "s" : ""} ago`;
+    const days = Math.floor(hours / 24);
+    if (days < 30) return `${days} day${days !== 1 ? "s" : ""} ago`;
+    const months = Math.floor(days / 30);
+    return `${months} month${months !== 1 ? "s" : ""} ago`;
+  }
+
+  function activityText(activity) {
+    switch (activity.type) {
+      case "project_created":
+        return <><strong>{activity.username}</strong> created a new project {activity.project_title}</>;
+      case "joined_project":
+        return <><strong>{activity.username}</strong> joined {activity.project_title}</>;
+      case "join_requested":
+        return <><strong>{activity.username}</strong> requested to join {activity.project_title}</>;
+      case "commit":
+        return <><strong>{activity.username}</strong> pushed a commit to {activity.project_title}: "{activity.message}"</>;
+      case "issue_opened":
+        return <><strong>{activity.username}</strong> opened an issue in {activity.project_title}: "{activity.message}"</>;
+      case "pr_merged":
+        return <><strong>{activity.username}</strong> merged a PR in {activity.project_title}: "{activity.message}"</>;
+      case "pr_opened":
+        return <><strong>{activity.username}</strong> opened a PR in {activity.project_title}: "{activity.message}"</>;
+      default:
+        return <><strong>{activity.username}</strong> did something in {activity.project_title}</>;
+    }
+  }
+
+  const avatarGradients = [
+    "linear-gradient(135deg, #7c3aed, #4b4db8)",
+    "linear-gradient(135deg, #10b981, #2aaa7b)",
+    "linear-gradient(135deg, #f59e0b, #ba9023)",
+    "linear-gradient(135deg, #ef4444, #783636)",
+    "linear-gradient(135deg, #3b82f6, #254060)",
+  ];
+
+  function gradientFor(username) {
+    if (!username) return avatarGradients[0];
+    const hash = username.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
+    return avatarGradients[hash % avatarGradients.length];
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'row', height: '100vh', backgroundColor: '#fff', color: '#000' }}>
@@ -140,8 +237,10 @@ function Dashboard() {
 
             </button>
             <div className="profile-section" onClick={() => setShowProfileMenu(!showProfileMenu)}>
-              <div className="profile-pic">{firstLetter}</div>
-              <span>{user?.username || "User"}</span>
+              <div className="profile-pic">{user?.avatar
+                ? <img src={user.avatar} alt="avatar" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
+                : firstLetter}</div>
+              <span>{user?.name || user?.username || "User"}</span>
               <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <polyline points="6 9 12 15 18 9" />
               </svg>
@@ -158,10 +257,10 @@ function Dashboard() {
         <div className="dashboard-content">
           {/* left side / center */}
           <div className="left-panel">
-            <span className="dashboard-greeting">Good Morning, {user?.username || "User"}</span>
+            <span className="dashboard-greeting">Good Morning, {user?.name || user?.username || "User"}</span>
             <span className="dashboard-welcome-msg">Lets build something incredible together today</span>
             <div className="dashboard-stats">
-<div className="dashboard-stat-card">
+              <div className="dashboard-stat-card">
                 <div className="stat-icon-1">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#4F46E5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2z" />
@@ -226,7 +325,7 @@ function Dashboard() {
             <div className="recomended-projects-section">
               <span className="recomendation-header">
                 Recommended For You
-               <a href="#" className="view-all-link" onClick={(e) => { e.preventDefault(); alert('clicked'); navigate('/recommendations'); }}>View all recomendations {"->"}</a>
+                <a href="#" className="view-all-link" onClick={(e) => { e.preventDefault(); navigate('/recommendations'); }}>View all recomendations {"->"}</a>
               </span>
               <span className="recomendation-subheader">
                 projects that match your skills and interests
@@ -272,6 +371,13 @@ function Dashboard() {
                           </div>
                         </div>
                         <div className="card-footer">
+                          <div className="star-container" onClick={(e) => handleToggleStar(e, project._id)} style={{ cursor: "pointer" }}>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14"
+                              fill={project.is_starred ? "#F59E0B" : "none"} stroke="#F59E0B" strokeWidth="2">
+                              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                            </svg>
+                            <span className="card-star-count">{project.stars || 0}</span>
+                          </div>
                           <div className="member-container">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -303,37 +409,21 @@ function Dashboard() {
                 <a href="#" className="view-all-link">View all activity {"->"}</a>
               </span>
               <div className="recent-activity-content">
-
-                <div className="activity-item">
-                  <div className="activity-avatar" style={{ background: 'linear-gradient(135deg, #7c3aed, #4b4db8)' }}>I</div>
-                  <span className="activity-text"><strong>ishu2022</strong> updated DevFlow README.md</span>
-                  <span className="activity-time">2 hours ago</span>
-                </div>
-
-                <div className="activity-item">
-                  <div className="activity-avatar" style={{ background: 'linear-gradient(135deg, #10b981, #2aaa7b)' }}>G</div>
-                  <span className="activity-text"><strong>green_coder</strong> added a new issue in EcoTrack</span>
-                  <span className="activity-time">5 hours ago</span>
-                </div>
-
-                <div className="activity-item">
-                  <div className="activity-avatar" style={{ background: 'linear-gradient(135deg, #f59e0b, #ba9023)' }}>P</div>
-                  <span className="activity-text"><strong>pixel_pirate</strong> merged PR #42 in GameHub</span>
-                  <span className="activity-time">1 day ago</span>
-                </div>
-
-                <div className="activity-item">
-                  <div className="activity-avatar" style={{ background: 'linear-gradient(135deg, #ef4444, #783636)' }}>K</div>
-                  <span className="activity-text"><strong>Kaivalya</strong> joined DevConnect as Frontend Dev</span>
-                  <span className="activity-time">2 days ago</span>
-                </div>
-
-                <div className="activity-item">
-                  <div className="activity-avatar" style={{ background: 'linear-gradient(135deg, #3b82f6, #254060)' }}>A</div>
-                  <span className="activity-text"><strong>alex_builds</strong> created a new project AI Resume Analyzer</span>
-                  <span className="activity-time">3 days ago</span>
-                </div>
-
+                {activitiesLoading ? (
+                  <p style={{ padding: '12px', color: '#9ca3af' }}>Loading activity...</p>
+                ) : activities.length === 0 ? (
+                  <p style={{ padding: '12px', color: '#9ca3af' }}>No recent activity yet.</p>
+                ) : (
+                  activities.map((activity, i) => (
+                    <div className="activity-item" key={i}>
+                      <div className="activity-avatar" style={{ background: gradientFor(activity.username) }}>
+                        {activity.username?.charAt(0).toUpperCase() || "U"}
+                      </div>
+                      <span className="activity-text">{activityText(activity)}</span>
+                      <span className="activity-time">{timeAgo(activity.timestamp)}</span>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </div>
@@ -347,45 +437,32 @@ function Dashboard() {
                 <a href="#" className="view-all-link">view All {"->"}</a>
               </span>
               <div className="trending-projects-content">
-                <div className="trending-item">
-                  <div className="trending-rank-1">1</div>
-                  <div className="trending-info">
-                    <span className="trending-title">AI Code Asistant</span>
-                    <span className="trending-skills">Python, FastAPI, React</span>
-                  </div>
-                  <div className="trending-rating">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#FFD700" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                    </svg>
-                    <span className="rating-count">153</span>
-                  </div>
-                </div>
-                <div className="trending-item">
-                  <div className="trending-rank-2">2</div>
-                  <div className="trending-info">
-                    <span className="trending-title">Open Source Docs</span>
-                    <span className="trending-skills">MDX, Tailwind , React</span>
-                  </div>
-                  <div className="trending-rating">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#FFD700" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                    </svg>
-                    <span className="rating-count">113</span>
-                  </div>
-                </div>
-                <div className="trending-item">
-                  <div className="trending-rank-3">3</div>
-                  <div className="trending-info">
-                    <span className="trending-title">DevPortfolio Starter</span>
-                    <span className="trending-skills">Next.js, Tailwind, Typscript</span>
-                  </div>
-                  <div className="trending-rating">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#FFD700" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                    </svg>
-                    <span className="rating-count">69</span>
-                  </div>
-                </div>
+                {trendingProjects.length === 0 ? (
+                  <p style={{ padding: '12px', color: '#9ca3af', fontSize: '0.75rem' }}>
+                    No trending projects yet — star a project to get this started!
+                  </p>
+                ) : (
+                  trendingProjects.map((project, i) => (
+                    <div
+                      className="trending-item"
+                      key={project._id}
+                      onClick={() => navigate(`/projects/${project._id}`)}
+                      style={{ cursor: "pointer" }}
+                    >
+                      <div className={`trending-rank-${i + 1}`}>{i + 1}</div>
+                      <div className="trending-info">
+                        <span className="trending-title">{project.title}</span>
+                        <span className="trending-skills">{(project.required_skills || []).join(", ")}</span>
+                      </div>
+                      <div className="trending-rating">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#FFD700" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                        </svg>
+                        <span className="rating-count">{project.stars}</span>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
 

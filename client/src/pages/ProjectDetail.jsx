@@ -209,8 +209,10 @@ function ProjectDetail() {
 
             </button>
             <div className="profile-section" onClick={() => setShowProfileMenu(!showProfileMenu)}>
-              <div className="profile-pic">{firstLetter}</div>
-              <span>{user?.username || "User"}</span>
+              <div className="profile-pic">{user?.avatar
+                    ? <img src={user.avatar} alt="avatar" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
+                    : firstLetter}</div>
+              <span>{ user?.name || user?.username || "User"}</span>
               <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <polyline points="6 9 12 15 18 9" />
               </svg>

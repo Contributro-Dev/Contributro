@@ -304,7 +304,6 @@
  /* ── FILTERS ── */
  .explore-filters {
      width: 210px;
-     max-height: calc(100vh - 220px);
      display: flex;
      flex-direction: column;
      flex-shrink: 0;

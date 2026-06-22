@@ -46,6 +46,35 @@ def get_project_recommendations():
         top_n=top_n
     )
 
+    # Enrich with live star data — the recommender index is built once at
+    # startup/refresh and won't reflect stars added/removed since then.
+    project_ids = []
+    for r in results:
+        pid = r.get("_id")
+        if pid:
+            try:
+                project_ids.append(ObjectId(pid))
+            except Exception:
+                pass
+
+    star_counts = {}
+    for doc in db.stars.aggregate([
+        {"$match": {"project_id": {"$in": project_ids}}},
+        {"$group": {"_id": "$project_id", "count": {"$sum": 1}}}
+    ]):
+        star_counts[str(doc["_id"])] = doc["count"]
+
+    my_starred_ids = {
+        str(s["project_id"]) for s in db.stars.find(
+            {"github_id": github_id, "project_id": {"$in": project_ids}}
+        )
+    }
+
+    for r in results:
+        pid = r.get("_id")
+        r["stars"] = star_counts.get(pid, 0)
+        r["is_starred"] = pid in my_starred_ids
+
     return jsonify({
         "recommendations": results,
         "count": len(results)
