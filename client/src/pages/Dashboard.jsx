@@ -29,6 +29,8 @@ function Dashboard() {
 
   const [trendingProjects, setTrendingProjects] = useState([]);
 
+  const [bookmarkCount, setBookmarkCount] = useState(0);
+
   const navigate = useNavigate()
 
   const handleScroll = () => {
@@ -70,6 +72,12 @@ function Dashboard() {
       setShowSkillPopup(true);
     }
   }, []);
+
+  // BookMarks count
+  useEffect(() => {
+  const savedIds = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+  setBookmarkCount(savedIds.length);
+}, []);
 
   // ─────────────────────────────────────────────
   // Load projects
@@ -298,7 +306,7 @@ function Dashboard() {
 
                 </div>
                 <div className="stat-info">
-                  <span className="stat-number">24</span>
+                  <span className="stat-number">{bookmarkCount}</span>
                   <span className="stat-label">Bookmarks</span>
                   <span className="stat-sublabel">Project saved</span>
                 </div>
