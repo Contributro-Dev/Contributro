@@ -10,6 +10,7 @@ import ProjectDetail from "./pages/ProjectDetail.jsx";
 import CreateProject from "./pages/CreateProject.jsx";
 import Bookmarks from "./pages/Bookmarks.jsx";
 import Requests from "./pages/Requests.jsx";
+import Projects from "./pages/Projects.jsx"
 
 function PrivateRoute({ children }) {
   const { token } = useContext(AuthContext);
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
           <Route path="/explore" element={<PrivateRoute><Explore /></PrivateRoute>} />
           <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+          <Route path ="/projects" element={<PrivateRoute><Projects /></PrivateRoute>}/>
           <Route path="/projects/:id" element={<PrivateRoute><ProjectDetail /></PrivateRoute>} />
           <Route path="/create-project" element={<PrivateRoute><CreateProject /></PrivateRoute>} />
           <Route path="/bookmarks" element={<PrivateRoute><Bookmarks /></PrivateRoute>} />
