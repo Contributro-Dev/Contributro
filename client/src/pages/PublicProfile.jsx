@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { getPublicProfile, getPublicGithubStats, getPublicGithubContributions } from "../services/userService.js";
 import {
   FiMapPin, FiLink, FiCalendar, FiShare2, FiCode,
   FiAlertCircle, FiUserPlus, FiPlusCircle, FiStar,
-  FiGitPullRequest, FiEye, FiGitCommit, FiBook,
+  FiGitPullRequest, FiEye, FiGitCommit, FiBook, FiArrowLeft,
 } from "react-icons/fi";
 import { FaAws } from "react-icons/fa";
 import {
@@ -72,6 +72,7 @@ function getLevel(count) {
 
 export default function PublicProfile() {
   const { username } = useParams();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -79,6 +80,7 @@ export default function PublicProfile() {
 
   const [githubStats, setGithubStats] = useState(null);
   const [contributions, setContributions] = useState({ weeks: [], total: 0, streak: 0 });
+  const [languages, setLanguages] = useState([]);
 
   const showToast = useCallback((message, type = "success") => {
     setToast({ message, type });
@@ -91,7 +93,10 @@ export default function PublicProfile() {
       .catch(() => { setNotFound(true); setLoading(false); });
 
     getPublicGithubStats(username)
-      .then((res) => setGithubStats(res.data))
+      .then((res) => {
+        setGithubStats(res.data);
+        setLanguages(res.data.languages || []);
+      })
       .catch((err) => console.error("Failed to load public GitHub stats:", err));
 
     getPublicGithubContributions(username)
@@ -147,6 +152,13 @@ export default function PublicProfile() {
       )}
 
       <div className="public-profile-topbar">
+        <button
+          className="btn btn--outline"
+          onClick={() => navigate(-1)}
+          style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "13px", padding: "7px 14px" }}
+        >
+          <FiArrowLeft size={15} /> Back
+        </button>
         <Link to="/" className="public-profile-brand">Contributro</Link>
         <Link to="/login" className="btn btn--primary" style={{ fontSize: "13px", padding: "7px 16px" }}>
           Sign in
@@ -304,7 +316,21 @@ export default function PublicProfile() {
           <section className="card">
             <h3 className="section-title section-title--sm">Top Languages</h3>
             <div className="languages-list">
-              <p className="empty-msg">Sign in to view language data.</p>
+              {languages.length === 0 ? (
+                <p className="empty-msg">No language data available</p>
+              ) : (
+                languages.map((lang) => (
+                  <div key={lang.name} className="language-item">
+                    <div className="language-item__row">
+                      <span className="language-item__name">{lang.name}</span>
+                      <span className="language-item__percent">{lang.percent}%</span>
+                    </div>
+                    <div className="progress-track">
+                      <div className="progress-fill" style={{ width: `${lang.percent}%`, backgroundColor: lang.color }} />
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </section>
 
