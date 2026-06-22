@@ -324,7 +324,8 @@ function Explore() {
                                 <div className="recomended-projects-section">
                                     <span className="recomendation-header">
                                         AI Recommended For You
-                                        <a href="#" className="view-all-link">View all recomendations {"->"}</a>
+                                        
+                                        <a href="#" className="view-all-link" onClick={(e) => { e.preventDefault(); navigate('/recommendations'); }}>View all recomendations {"->"}</a>
                                     </span>
                                     <span className="recomendation-subheader">
                                         projects that match your skills and interests
