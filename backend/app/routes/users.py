@@ -1,9 +1,9 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from ..extensions import db
-from flask import request
+from ..services.activity_service import log_activity, get_user_activity
 import requests
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 users_bp = Blueprint('users', __name__)
 
@@ -12,7 +12,7 @@ users_bp = Blueprint('users', __name__)
 def get_user(github_id):
     user = db.users.find_one({"github_id": github_id})
     if user:
-        user.pop('_id')  # Remove the MongoDB ObjectId from the response
+        user.pop('_id')
         return jsonify(user)
     return jsonify({"error": "User not found"}), 404
 
@@ -30,7 +30,7 @@ def update_user(github_id):
 def all_users():
     users = list(db.users.find())
     for user in users:
-        user.pop('_id', None)  # Remove the MongoDB ObjectId from each user in the response
+        user.pop('_id', None)
     return jsonify(users)
 
 
@@ -38,7 +38,7 @@ def all_users():
 @jwt_required()
 def update_user_skills(github_id):
     data = request.get_json()
-    update_user = db.users.update_one(
+    result = db.users.update_one(
         {"github_id": github_id},
         {"$set": {
             "skills": data.get('skills', []),
@@ -46,15 +46,98 @@ def update_user_skills(github_id):
             "intent": data.get('intent', "both")
         }}
     )
-    if update_user.matched_count:
+    if result.matched_count:
+        user = db.users.find_one({"github_id": github_id})
+        log_activity(github_id, user.get("username", ""), "updated_skills", "Updated skills")
         return jsonify({"message": "User skills updated successfully"})
     return jsonify({"error": "User not found"}), 404
 
 
+@users_bp.route('/me', methods=['GET'])
+@jwt_required()
+def get_me():
+    github_id = get_jwt_identity()
+    user = db.users.find_one({"github_id": int(github_id)})
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    user.pop('_id')
+    user.pop('github_access_token', None)
+    return jsonify(user)
 
-# ─────────────────────────────────────────────
-# Real GitHub data routes
-# ─────────────────────────────────────────────
+
+@users_bp.route('/me', methods=['PUT'])
+@jwt_required()
+def update_me():
+    github_id = get_jwt_identity()
+    data = request.get_json()
+    allowed_fields = ['name', 'bio', 'location', 'portfolio', 'status', 'skills', 'interests', 'avatar']
+    update_data = {k: v for k, v in data.items() if k in allowed_fields}
+
+    if not update_data:
+        return jsonify({"error": "No valid fields to update"}), 400
+
+    result = db.users.update_one(
+        {"github_id": int(github_id)},
+        {"$set": update_data}
+    )
+
+    if not result.matched_count:
+        return jsonify({"error": "User not found"}), 404
+
+    updated_user = db.users.find_one({"github_id": int(github_id)})
+    updated_user.pop('_id')
+    updated_user.pop('github_access_token', None)
+
+    username = updated_user.get("username", "")
+
+    if "skills" in update_data or "interests" in update_data:
+        log_activity(github_id, username, "updated_skills", "Updated skills")
+    if "bio" in update_data:
+        log_activity(github_id, username, "updated_bio", "Updated bio")
+    if "portfolio" in update_data:
+        log_activity(github_id, username, "updated_portfolio", "Updated portfolio")
+    if "status" in update_data:
+        log_activity(github_id, username, "changed_status", "Changed status")
+    if any(f in update_data for f in ['name', 'location', 'avatar']):
+        log_activity(github_id, username, "updated_profile", "Updated profile")
+
+    return jsonify(updated_user)
+
+
+@users_bp.route('/me/activity', methods=['GET'])
+@jwt_required()
+def get_my_activity():
+    github_id = get_jwt_identity()
+    activities = get_user_activity(github_id)
+    return jsonify(activities)
+
+
+@users_bp.route('/activity', methods=['POST'])
+@jwt_required()
+def post_activity():
+    github_id = get_jwt_identity()
+    data = request.get_json()
+    activity_type = data.get('type')
+    message = data.get('message')
+    metadata = data.get('metadata', {})
+    if not activity_type or not message:
+        return jsonify({"error": "type and message are required"}), 400
+    user = db.users.find_one({"github_id": int(github_id)})
+    username = user.get("username", "") if user else ""
+    log_activity(github_id, username, activity_type, message, metadata)
+    return jsonify({"message": "Activity logged"}), 201
+
+
+@users_bp.route('/profile/<string:username>', methods=['GET'])
+def get_public_profile(username):
+    user = db.users.find_one({"username": username})
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    public_fields = ['username', 'name', 'bio', 'location', 'portfolio', 'website',
+                     'status', 'skills', 'interests', 'avatar', 'joinedDate', 'github_id']
+    profile = {k: user[k] for k in public_fields if k in user}
+    return jsonify(profile)
+
 
 PROFILE_QUERY = """
 query($login: String!, $from: DateTime!, $to: DateTime!) {
@@ -218,4 +301,3 @@ def github_languages():
     ]
 
     return jsonify({"languages": languages[:6]})
-

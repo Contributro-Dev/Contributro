@@ -1,38 +1,26 @@
-import { useContext, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useContext, useState, useEffect, useCallback } from "react";
 import { AuthContext } from "../context/AuthContext.jsx";
 import Sidebar from "../components/Sidebar.jsx";
-import { getGithubContributions, getGithubStats, getGithubLanguages } from "../services/userService.js";
+import EditProfileModal from "../components/EditProfileModal.jsx";
 import {
-  FiMapPin,
-  FiLink,
-  FiCalendar,
-  FiEdit2,
-  FiShare2,
-  FiCode,
-  FiUserPlus,
-  FiPlusCircle,
-  FiStar,
-  FiGitBranch,
-  FiGitPullRequest,
-  FiAlertCircle,
-  FiEye,
-  FiGitCommit,
-  FiBook,
+  getGithubContributions,
+  getGithubStats,
+  getGithubLanguages,
+  getMyActivity,
+  getMe,
+  updateMe,
+} from "../services/userService.js";
+import {
+  FiMapPin, FiLink, FiCalendar, FiEdit2, FiShare2, FiCode,
+  FiUserPlus, FiActivity, FiGitPullRequest,
+  FiAlertCircle, FiEye, FiGitCommit, FiBook, FiStar,
+  FiUser, FiBookmark, FiPlusCircle,
 } from "react-icons/fi";
 import { FaAws } from "react-icons/fa";
 import {
-  SiPython,
-  SiReact,
-  SiMongodb,
-  SiDocker,
-  SiPandas,
-  SiNumpy,
-  SiTailwindcss,
+  SiPython, SiReact, SiMongodb, SiDocker, SiPandas, SiNumpy, SiTailwindcss,
 } from "react-icons/si";
 import "./Profile.css";
-
-// ── Static profile content (not from GitHub) ───────────────────────────────
 
 const TECH_STACK = [
   { name: "Python", icon: SiPython, color: "#3776AB" },
@@ -54,13 +42,6 @@ const INTERESTS = [
   { label: "Cloud Computing", emoji: "☁️", bg: "#f0f9ff" },
   { label: "UI/UX", emoji: "🎨", bg: "#fdf2f8" },
 ];
- 
-const RECENT_ACTIVITY = [
-  { time: "Today", text: "Updated skills", icon: FiCode, color: "#6366f1" },
-  { time: "Yesterday", text: "Joined Healthcare Chatbot", icon: FiUserPlus, color: "#10b981" },
-  { time: "2 days ago", text: "Created AI Resume Builder", icon: FiPlusCircle, color: "#8b5cf6" },
-  { time: "4 days ago", text: "Received a recommendation", icon: FiStar, color: "#f59e0b" },
-];
 
 const ACHIEVEMENTS = [
   { emoji: "🏆", title: "Top Contributor", desc: "Recognized for outstanding contributions", bg: "#fffbeb" },
@@ -69,9 +50,22 @@ const ACHIEVEMENTS = [
   { emoji: "🛡️", title: "Open Source Hero", desc: "Helping developers worldwide", bg: "#eff6ff" },
 ];
 
+const ACTIVITY_ICON_MAP = {
+  updated_profile:    { icon: FiUser,       color: "#6366f1" },
+  updated_skills:     { icon: FiCode,       color: "#8b5cf6" },
+  updated_bio:        { icon: FiEdit2,      color: "#6366f1" },
+  updated_portfolio:  { icon: FiLink,       color: "#0ea5e9" },
+  changed_status:     { icon: FiActivity,   color: "#f59e0b" },
+  shared_profile:     { icon: FiShare2,     color: "#10b981" },
+  connected_github:   { icon: FiGitCommit,  color: "#1d4ed8" },
+  created_project:    { icon: FiPlusCircle, color: "#8b5cf6" },
+  joined_project:     { icon: FiUserPlus,   color: "#10b981" },
+  bookmarked_project: { icon: FiBookmark,   color: "#f59e0b" },
+  default:            { icon: FiStar,       color: "#6366f1" },
+};
+
 const CURRENT_MONTH = new Date().toLocaleString("default", { month: "long", year: "numeric" });
 
-// Approximate month label positions across 52 weekly columns
 const MONTH_LABELS = (() => {
   const labels = [];
   const now = new Date();
@@ -95,27 +89,49 @@ function getLevel(count) {
   return 4;
 }
 
-export default function Profile() {
-  const { user, token, logout } = useContext(AuthContext);
-  const navigate = useNavigate();
-  const [showProfileMenu, setShowProfileMenu] = useState(false);
+function getRelativeTime(isoString) {
+  const now = new Date();
+  const date = new Date(isoString);
+  const diffMs = now - date;
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return `${diffDays} days ago`;
+  if (diffDays < 14) return "1 week ago";
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+  if (diffDays < 60) return "1 month ago";
+  return `${Math.floor(diffDays / 30)} months ago`;
+}
 
-  // ── Real GitHub data state ────────────────────────────────────────────────
+export default function Profile() {
+  const { user, token, logout, updateUser } = useContext(AuthContext);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [contributions, setContributions] = useState({ weeks: [], total: 0, streak: 0 });
   const [githubStats, setGithubStats] = useState(null);
   const [languages, setLanguages] = useState([]);
+  const [activity, setActivity] = useState([]);
+  const [toast, setToast] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editLoading, setEditLoading] = useState(false);
+  const [modalInitialData, setModalInitialData] = useState(null);
+
+  const showToast = useCallback((message, type = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  }, []);
+
+  const refreshActivity = useCallback(() => {
+    if (!token) return;
+    getMyActivity(token)
+      .then((res) => setActivity(res.data))
+      .catch((err) => console.error("Failed to load activity:", err));
+  }, [token]);
 
   useEffect(() => {
     if (!token) return;
 
     getGithubContributions(token)
-      .then((res) => {
-        setContributions({
-          weeks: res.data.weeks,
-          total: res.data.total_contributions,
-          streak: res.data.current_streak,
-        });
-      })
+      .then((res) => setContributions({ weeks: res.data.weeks, total: res.data.total_contributions, streak: res.data.current_streak }))
       .catch((err) => console.error("Failed to load contributions:", err));
 
     getGithubStats(token)
@@ -125,7 +141,54 @@ export default function Profile() {
     getGithubLanguages(token)
       .then((res) => setLanguages(res.data.languages))
       .catch((err) => console.error("Failed to load languages:", err));
-  }, [token]);
+
+    refreshActivity();
+  }, [token, refreshActivity]);
+
+  const handleOpenEditModal = useCallback(async () => {
+    try {
+      const res = await getMe(token);
+      setModalInitialData(res.data);
+      setShowEditModal(true);
+    } catch (err) {
+      console.error("Failed to fetch latest profile:", err);
+      setModalInitialData({ ...user });
+      setShowEditModal(true);
+    }
+  }, [token, user]);
+
+  const handleCloseEditModal = useCallback(() => {
+    setShowEditModal(false);
+    setModalInitialData(null);
+    setEditLoading(false);
+  }, []);
+
+  const handleSaveProfile = useCallback(async (formData) => {
+    setEditLoading(true);
+    try {
+      const res = await updateMe(token, formData);
+      updateUser(res.data);
+      setShowEditModal(false);
+      setModalInitialData(null);
+      showToast("Profile updated successfully!");
+      refreshActivity();
+    } catch (err) {
+      console.error("Failed to update profile:", err);
+      showToast("Failed to update profile. Please try again.", "error");
+    } finally {
+      setEditLoading(false);
+    }
+  }, [token, updateUser, showToast, refreshActivity]);
+
+  const handleShareProfile = useCallback(async () => {
+    const profileUrl = `${window.location.origin}/profile/${user?.username}`;
+    try {
+      await navigator.clipboard.writeText(profileUrl);
+      showToast("Profile link copied to clipboard!");
+    } catch {
+      showToast("Failed to copy link.", "error");
+    }
+  }, [user?.username, showToast]);
 
   const firstLetter = user?.username?.charAt(0).toUpperCase() || "U";
 
@@ -133,7 +196,23 @@ export default function Profile() {
     <>
       <Sidebar activePage="profile" />
       <div className="profile-container">
-        {/* ── Navbar ───────────────────────────────────────────────────────── */}
+
+        {toast && (
+          <div className={`profile-toast profile-toast--${toast.type}`}>
+            {toast.message}
+          </div>
+        )}
+
+        {showEditModal && modalInitialData && (
+          <EditProfileModal
+            key={Date.now()}
+            initialData={modalInitialData}
+            onSave={handleSaveProfile}
+            onClose={handleCloseEditModal}
+            loading={editLoading}
+          />
+        )}
+
         <div className="profile-nav">
           <div className="search-bar">
             <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -146,14 +225,10 @@ export default function Profile() {
             <button className="theme-toggle">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="4" />
-                <path d="M12 2v2" />
-                <path d="M12 20v2" />
-                <path d="M4.93 4.93l1.41 1.41" />
-                <path d="M17.66 17.66l1.41 1.41" />
-                <path d="M2 12h2" />
-                <path d="M20 12h2" />
-                <path d="M6.34 17.66l-1.41 1.41" />
-                <path d="M19.07 4.93l-1.41 1.41" />
+                <path d="M12 2v2" /><path d="M12 20v2" />
+                <path d="M4.93 4.93l1.41 1.41" /><path d="M17.66 17.66l1.41 1.41" />
+                <path d="M2 12h2" /><path d="M20 12h2" />
+                <path d="M6.34 17.66l-1.41 1.41" /><path d="M19.07 4.93l-1.41 1.41" />
               </svg>
             </button>
             <button className="notifications">
@@ -162,7 +237,7 @@ export default function Profile() {
                 <path d="M13.73 21a2 2 0 0 1-3.46 0" />
               </svg>
             </button>
-            <div className="profile-section" onClick={() => setShowProfileMenu(!showProfileMenu)}>
+            <div className="profile-section" onClick={() => setShowProfileMenu((p) => !p)}>
               <div className="profile-pic">{firstLetter}</div>
               <span>{user?.username || "User"}</span>
               <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -179,42 +254,38 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* ── Layout ───────────────────────────────────────────────────────── */}
         <div className="profile-layout">
-          {/* ── Center column ──────────────────────────────────────────────── */}
           <div className="profile-center">
-            {/* Profile header card */}
+
             <section className="card profile-header-card">
               <div className="profile-header-left">
-                <div className="profile-avatar">{firstLetter}</div>
+                <div className="profile-avatar">
+                  {user?.avatar
+                    ? <img src={user.avatar} alt="avatar" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
+                    : firstLetter}
+                </div>
                 <div className="profile-header-info">
                   <div className="profile-name-row">
                     <h1 className="profile-name">{user?.name || user?.username || "Developer"}</h1>
-                    <span className="badge badge--green">Looking for Projects</span>
+                    <span className="badge badge--green">{user?.status || "Looking for Projects"}</span>
                   </div>
                   <p className="profile-username">@{user?.username || "username"}</p>
-
                   <div className="profile-meta">
+                    <span className="meta-item"><FiMapPin size={14} /> {user?.location || "India"}</span>
                     <span className="meta-item">
-                      <FiMapPin size={14} /> {user?.location || "India"}
+                      <FiLink size={14} />
+                      {user?.portfolio || user?.website
+                        ? <a href={user.portfolio || user.website} target="_blank" rel="noreferrer">{user.portfolio || user.website}</a>
+                        : "yourportfolio.dev"}
                     </span>
-                    <span className="meta-item">
-                      <FiLink size={14} /> {user?.website || "yourportfolio.dev"}
-                    </span>
-                    <span className="meta-item">
-                      <FiCalendar size={14} /> Joined {user?.joinedDate || "Jan 2024"}
-                    </span>
+                    <span className="meta-item"><FiCalendar size={14} /> Joined {user?.joinedDate || "Jan 2024"}</span>
                   </div>
-
-                  <p className="profile-bio">
-                    {user?.bio || "Passionate about AI, open source and building impactful products."}
-                  </p>
-
+                  <p className="profile-bio">{user?.bio || "Passionate about AI, open source and building impactful products."}</p>
                   <div className="profile-actions">
-                    <button className="btn btn--primary">
+                    <button className="btn btn--primary" onClick={handleOpenEditModal}>
                       <FiEdit2 size={15} /> Edit Profile
                     </button>
-                    <button className="btn btn--outline">
+                    <button className="btn btn--outline" onClick={handleShareProfile}>
                       <FiShare2 size={15} /> Share Profile
                     </button>
                   </div>
@@ -222,7 +293,6 @@ export default function Profile() {
               </div>
             </section>
 
-            {/* Tech stack */}
             <section className="card">
               <h2 className="section-title">Tech Stack</h2>
               <div className="pill-list">
@@ -235,16 +305,11 @@ export default function Profile() {
               </div>
             </section>
 
-            {/* Interests */}
             <section className="card">
               <h2 className="section-title">Interests</h2>
               <div className="interests-grid">
                 {INTERESTS.map((interest) => (
-                  <div
-                    key={interest.label}
-                    className="interest-card"
-                    style={{ backgroundColor: interest.bg }}
-                  >
+                  <div key={interest.label} className="interest-card" style={{ backgroundColor: interest.bg }}>
                     <span className="interest-emoji">{interest.emoji}</span>
                     <span className="interest-label">{interest.label}</span>
                   </div>
@@ -252,13 +317,11 @@ export default function Profile() {
               </div>
             </section>
 
-            {/* GitHub Contributions heatmap — REAL DATA */}
             <section className="card">
               <div className="section-header">
                 <h2 className="section-title">GitHub Contributions</h2>
                 <span className="contribution-month">{CURRENT_MONTH}</span>
               </div>
-
               <div className="contribution-summary">
                 <div className="contribution-stat">
                   <span className="contribution-stat__value">{contributions.total}</span>
@@ -269,32 +332,24 @@ export default function Profile() {
                   <span className="contribution-stat__label">Current Streak</span>
                 </div>
               </div>
-
               <div className="heatmap-wrapper">
                 <div className="heatmap-inner">
                   <div className="heatmap-months">
                     {MONTH_LABELS.map((m, i) => (
-                      <span key={i} className="heatmap-month-label" style={{ gridColumnStart: m.col }}>
-                        {m.label}
-                      </span>
+                      <span key={i} className="heatmap-month-label" style={{ gridColumnStart: m.col }}>{m.label}</span>
                     ))}
                   </div>
                   <div className="heatmap-body">
                     <div className="heatmap-day-labels">
-                      <span>Mon</span>
-                      <span>Wed</span>
-                      <span>Fri</span>
+                      <span>Mon</span><span>Wed</span><span>Fri</span>
                     </div>
                     <div className="heatmap-grid">
                       {contributions.weeks.map((week, wIdx) => (
                         <div key={wIdx} className="heatmap-column">
                           {week.map((count, dIdx) => (
-                            <div
-                              key={dIdx}
-                              className="heatmap-cell"
+                            <div key={dIdx} className="heatmap-cell"
                               style={{ backgroundColor: LEVEL_COLORS[getLevel(count)] }}
-                              title={`${count} contributions`}
-                            />
+                              title={`${count} contributions`} />
                           ))}
                         </div>
                       ))}
@@ -302,7 +357,6 @@ export default function Profile() {
                   </div>
                 </div>
               </div>
-
               <div className="heatmap-legend">
                 <span>Less</span>
                 {LEVEL_COLORS.map((color, i) => (
@@ -312,31 +366,37 @@ export default function Profile() {
               </div>
             </section>
 
-            {/* Recent activity */}
             <section className="card">
               <h2 className="section-title">Recent Activity</h2>
-              <div className="timeline">
-                {RECENT_ACTIVITY.map((activity, i) => (
-                  <div key={i} className="timeline-item">
-                    <div className="timeline-marker">
-                      <span className="timeline-icon" style={{ color: activity.color }}>
-                        <activity.icon size={14} />
-                      </span>
-                      {i < RECENT_ACTIVITY.length - 1 && <span className="timeline-line" />}
-                    </div>
-                    <div className="timeline-content">
-                      <p className="timeline-time">{activity.time}</p>
-                      <p className="timeline-text">{activity.text}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              {activity.length === 0 ? (
+                <p className="empty-msg">No recent activity yet.</p>
+              ) : (
+                <div className="timeline">
+                  {activity.map((item, i) => {
+                    const mapped = ACTIVITY_ICON_MAP[item.type] || ACTIVITY_ICON_MAP.default;
+                    const IconComponent = mapped.icon;
+                    return (
+                      <div key={i} className="timeline-item">
+                        <div className="timeline-marker">
+                          <span className="timeline-icon" style={{ color: mapped.color }}>
+                            <IconComponent size={14} />
+                          </span>
+                          {i < activity.length - 1 && <span className="timeline-line" />}
+                        </div>
+                        <div className="timeline-content">
+                          <p className="timeline-time">{getRelativeTime(item.created_at)}</p>
+                          <p className="timeline-text">{item.message}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </section>
+
           </div>
 
-          {/* ── Right column ───────────────────────────────────────────────── */}
           <div className="profile-right">
-            {/* Top languages — REAL DATA */}
             <section className="card">
               <h3 className="section-title section-title--sm">Top Languages</h3>
               <div className="languages-list">
@@ -350,10 +410,7 @@ export default function Profile() {
                         <span className="language-item__percent">{lang.percent}%</span>
                       </div>
                       <div className="progress-track">
-                        <div
-                          className="progress-fill"
-                          style={{ width: `${lang.percent}%`, backgroundColor: lang.color }}
-                        />
+                        <div className="progress-fill" style={{ width: `${lang.percent}%`, backgroundColor: lang.color }} />
                       </div>
                     </div>
                   ))
@@ -361,7 +418,6 @@ export default function Profile() {
               </div>
             </section>
 
-            {/* GitHub stats — REAL DATA */}
             <section className="card">
               <h3 className="section-title section-title--sm">GitHub Stats</h3>
               <div className="github-stats-list">
@@ -392,15 +448,12 @@ export default function Profile() {
               </div>
             </section>
 
-            {/* Achievements */}
             <section className="card">
               <h3 className="section-title section-title--sm">Achievements</h3>
               <div className="achievements-list">
                 {ACHIEVEMENTS.map((badge) => (
                   <div key={badge.title} className="achievement-item">
-                    <span className="achievement-icon" style={{ backgroundColor: badge.bg }}>
-                      {badge.emoji}
-                    </span>
+                    <span className="achievement-icon" style={{ backgroundColor: badge.bg }}>{badge.emoji}</span>
                     <div className="achievement-text">
                       <p className="achievement-title">{badge.title}</p>
                       <p className="achievement-desc">{badge.desc}</p>
