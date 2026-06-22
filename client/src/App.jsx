@@ -12,7 +12,6 @@ import CreateProject from "./pages/CreateProject.jsx";
 import Bookmarks from "./pages/Bookmarks.jsx";
 import Requests from "./pages/Requests.jsx";
 import Projects from "./pages/Projects.jsx"
-import Login from "./pages/Login.jsx";
 import Recommendations from "./pages/Recommendations.jsx";
 
 function PrivateRoute({ children }) {
