@@ -65,6 +65,37 @@ def refresh_index():
     }), 200
 
 
+# routes/recommendations.py — add this route
+@recommendations_bp.route('/developers', methods=['GET'])
+@jwt_required()
+def get_developer_recommendations():
+    github_id = get_jwt_identity()
+    user = db.users.find_one({"github_id": int(github_id)})
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    top_n = request.args.get("limit", 10, type=int)
+    my_skills = set(user.get("skills", []))
+
+    candidates = list(db.users.find({"github_id": {"$ne": int(github_id)}}))
+
+    results = []
+    for c in candidates:
+        c_skills = set(c.get("skills", []))
+        overlap = my_skills & c_skills
+        match_score = round((len(overlap) / max(len(my_skills), 1)) * 100) if my_skills else 0
+        results.append({
+            "github_id": c["github_id"],
+            "username": c["username"],
+            "intent": c.get("intent", "Developer"),
+            "skills": list(c_skills)[:6],
+            "match_score": match_score,
+            "public_repos": c.get("public_repos", 0),
+        })
+
+    results.sort(key=lambda r: r["match_score"], reverse=True)
+    return jsonify({"recommendations": results[:top_n]}), 200
+
 
 '''
 "How does your recommendation system work?"
