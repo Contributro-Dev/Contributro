@@ -634,7 +634,7 @@
 
 .request-actions {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     gap: 4px;
 }
 

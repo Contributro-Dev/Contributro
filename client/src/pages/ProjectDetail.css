@@ -208,7 +208,7 @@
 .left-hero {
     padding: 4px 10px;
     display: flex;
-    justify-content: center;
+    width: 77%;
 }
 
 .logo-section {
@@ -245,6 +245,7 @@
 }
 
 .header-owner-badge {
+    width: fit-content;
     font-size: 0.5rem;
     padding: 2px 4px;
     border-radius: 4px;
@@ -1680,4 +1681,160 @@
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+
+
+/* Contributors tab */
+.contributors-div {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.current-contributors-section,
+.pending-requests-section {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 16px;
+    gap: 16px;
+}
+
+.contributors-section-header,
+.pending-requests-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.contributors-section-title,
+.pending-requests-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+.contributor-row,
+.request-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 6px;
+    border-bottom: 1px solid #f1f1f1;
+}
+
+.contributor-row:last-child,
+.request-row:last-child {
+    border-bottom: none;
+}
+
+.contributor-row-left,
+.request-row-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.contributor-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #7c3aed, #6366f1);
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.contributor-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.contributor-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.request-time {
+    font-size: 0.7rem;
+    color: #9ca3af;
+}
+
+.request-row-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.request-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 6px;
+    border-bottom: 1px solid #f1f1f1;
+}
+
+.approve-btn {
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: 1px solid #bbf7d0;
+    background: #f0fdf4;
+    color: #16a34a;
+    cursor: pointer;
+}
+
+.approve-btn:hover {
+    background: #dcfce7;
+}
+
+.reject-btn {
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: 1px solid #fecaca;
+    background: #fef2f2;
+    color: #dc2626;
+    cursor: pointer;
+}
+
+.reject-btn:hover {
+    background: #fee2e2;
+}
+
+.requests-empty {
+    font-size: 0.8rem;
+    color: #9ca3af;
+    padding: 12px 0;
+    text-align: center;
+}
+
+
+.contributor-row,
+.request-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 16px;
+    padding: 10px 6px;
+    border-bottom: 1px solid #f1f1f1;
+}
+
+.request-row {
+    justify-content: space-between;
+}
+
+.approve-btn,
+.reject-btn {
+    min-width: 80px;
+    text-align: center;
+    flex-shrink: 0;
 }

@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom'
 import { useEffect, useContext, useState } from "react";
 import { AuthContext } from "../context/AuthContext.jsx";
-import { getProject, joinProject, getReadme, getCommits, getIssues, getPulls } from "../services/projectServices.js";
+import { getProject, joinProject, getReadme, getCommits, getIssues, getPulls, getJoinRequests, handleJoinRequest } from "../services/projectServices.js";
 import Sidebar from "../components/Sidebar.jsx";
 import { useNavigate } from 'react-router-dom'
 import "./ProjectDetail.css";
@@ -27,6 +27,9 @@ function ProjectDetail() {
   const [readme, setReadme] = useState(null);
   const [readmeLoading, setReadmeLoading] = useState(false);
   const [readmeError, setReadmeError] = useState(null);
+
+  const [joinRequests, setJoinRequests] = useState(null);
+  const [joinRequestsLoading, setJoinRequestsLoading] = useState(false);
 
   const [commits, setCommits] = useState([]);
   const [commitsLoading, setCommitsLoading] = useState(false);
@@ -76,6 +79,18 @@ function ProjectDetail() {
       .finally(() => setReadmeLoading(false))
   }, [activeTab, readme, id, token])
 
+  // Load join requests when tab is opened (owner only)
+  useEffect(() => {
+    if (activeTab !== "contributors") return
+    if (!project || String(project.owner_github_id) !== String(user.github_id)) return
+
+    setJoinRequestsLoading(true)
+    getJoinRequests(id, token)
+      .then(res => setJoinRequests(res.data))
+      .catch(err => console.error(err))
+      .finally(() => setJoinRequestsLoading(false))
+  }, [activeTab, project, id, token, user])
+
   // Load issues when Issues tab is opened
   useEffect(() => {
     if (activeTab !== "issues") return
@@ -103,6 +118,19 @@ function ProjectDetail() {
       console.error(error);
     })
   })
+
+  const handleRequestAction = (requestId, action) => {
+    handleJoinRequest(id, requestId, action, token)
+      .then(() => {
+        // refresh the pending list after approve/reject
+        setJoinRequests(prev => prev.filter(req => req._id !== requestId))
+        // refresh project so members list updates if approved
+        if (action === "approve") {
+          getProject(id, token).then(res => setProject(res.data))
+        }
+      })
+      .catch(err => console.error(err))
+  }
 
   const firstLetter = user?.username?.charAt(0).toUpperCase() || "U";
 
@@ -660,30 +688,6 @@ function ProjectDetail() {
                           <div className="badge-need">UI/UX Designer</div>
                         </div>
                       </div>
-
-                      {/* Recent Commits */}
-                      <div className="commits-section">
-                        <div className="commits-header">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2D3748" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <circle cx="12" cy="12" r="3" />
-                            <line x1="3" y1="12" x2="9" y2="12" />
-                            <line x1="15" y1="12" x2="21" y2="12" />
-                          </svg>
-                          <span className="commits-title">Recent Commits</span>
-                        </div>
-                        {commitsLoading && <div className="commits-empty">Loading commits...</div>}
-                        {!commitsLoading && commits.length === 0 && (
-                          <div className="commits-empty">No commits found, or no repo linked.</div>
-                        )}
-                        {!commitsLoading && commits.map(c => (
-                          <a key={c.sha} href={c.url} target="_blank" rel="noreferrer" className="commit-row">
-                            <span className="commit-sha">{c.sha}</span>
-                            <span className="commit-message">{c.message}</span>
-                            <span className="commit-meta">{c.author} · {new Date(c.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}</span>
-                          </a>
-                        ))}
-                      </div>
-
                     </div>
 
                     <div className="project-detail-div">
@@ -759,13 +763,13 @@ function ProjectDetail() {
                           <div className="right-detail">
                             {project.github_repo_url
                               ? <a href={project.github_repo_url} target="_blank" rel="noreferrer">
-                                  {project.github_repo_url.replace("https://github.com/", "")}
-                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                                    <polyline points="15 3 21 3 21 9" />
-                                    <line x1="10" y1="14" x2="21" y2="3" />
-                                  </svg>
-                                </a>
+                                {project.github_repo_url.replace("https://github.com/", "")}
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                                  <polyline points="15 3 21 3 21 9" />
+                                  <line x1="10" y1="14" x2="21" y2="3" />
+                                </svg>
+                              </a>
                               : <span className="text-gray-400">No repo linked</span>
                             }
                           </div>
@@ -831,6 +835,29 @@ function ProjectDetail() {
                       </div>
                     </div>
                   </div>
+                   {/* Recent Commits */}
+                      <div className="commits-section">
+                        <div className="commits-header">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2D3748" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="3" />
+                            <line x1="3" y1="12" x2="9" y2="12" />
+                            <line x1="15" y1="12" x2="21" y2="12" />
+                          </svg>
+                          <span className="commits-title">Recent Commits</span>
+                        </div>
+                        {commitsLoading && <div className="commits-empty">Loading commits...</div>}
+                        {!commitsLoading && commits.length === 0 && (
+                          <div className="commits-empty">No commits found, or no repo linked.</div>
+                        )}
+                        {!commitsLoading && commits.map(c => (
+                          <a key={c.sha} href={c.url} target="_blank" rel="noreferrer" className="commit-row">
+                            <span className="commit-sha">{c.sha}</span>
+                            <span className="commit-message">{c.message}</span>
+                            <span className="commit-meta">{c.author} · {new Date(c.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}</span>
+                          </a>
+                        ))}
+                      </div>
+
                 </div>
               )}
 
@@ -849,13 +876,75 @@ function ProjectDetail() {
                 </div>
               )}
 
+              {activeTab === "contributors" && (
+                <div className="contributors-div">
+
+                  {/* Current Contributors */}
+                  <div className="current-contributors-section">
+                    <div className="contributors-section-header">
+                      <span className="contributors-section-title">Current Contributors ({project.members?.length || 0})</span>
+                    </div>
+                    {project.members_info?.map(member => (
+                      <div key={member.github_id} className="contributor-row">
+                        <div className="contributor-avatar">{member.username?.charAt(0).toUpperCase()}</div>
+                        <div className="contributor-info">
+                          <span className="contributor-name">{member.username}</span>
+                          {String(member.github_id) === String(project.owner_github_id) && (
+                            <span className="header-owner-badge">Owner</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Pending Requests - owner only */}
+                  {String(project.owner_github_id) === String(user.github_id) && (
+                    <div className="pending-requests-section">
+                      <div className="pending-requests-header">
+                        <span className="pending-requests-title">
+                          Pending Requests {joinRequests ? `(${joinRequests.length})` : ""}
+                        </span>
+                      </div>
+
+                      {joinRequestsLoading && <div className="requests-empty">Loading requests...</div>}
+
+                      {!joinRequestsLoading && joinRequests?.length === 0 && (
+                        <div className="requests-empty">No pending requests.</div>
+                      )}
+
+                      {!joinRequestsLoading && joinRequests?.map(req => (
+                        <div key={req._id} className="request-row">
+                          <div className="request-row-left">
+                            <div className="contributor-avatar">{req.username?.charAt(0).toUpperCase()}</div>
+                            <div className="contributor-info">
+                              <span className="contributor-name">{req.username}</span>
+                              <span className="request-time">
+                                Requested {new Date(req.requested_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="request-row-right">
+                            <button className="approve-btn" onClick={() => handleRequestAction(req._id, "approve")}>
+                              Approve
+                            </button>
+                            <button className="reject-btn" onClick={() => handleRequestAction(req._id, "reject")}>
+                              Reject
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {activeTab === "issues" && (
                 <div className="issues-div">
                   {issuesLoading && <div className="issues-loading">Loading issues...</div>}
                   {!issuesLoading && issues.length === 0 && (
                     <div className="issues-empty">No open issues, or no repo linked.</div>
                   )}
-{!issuesLoading && issues.map(issue => (
+                  {!issuesLoading && issues.map(issue => (
                     <a key={issue.number} href={issue.url} target="_blank" rel="noreferrer" className="issue-row">
                       <div className="issue-row-left">
                         <span className="issue-number">#{issue.number}</span>
@@ -878,7 +967,7 @@ function ProjectDetail() {
                   {!pullsLoading && pulls.length === 0 && (
                     <div className="pulls-empty">No open pull requests, or no repo linked.</div>
                   )}
-{!pullsLoading && pulls.map(pr => (
+                  {!pullsLoading && pulls.map(pr => (
                     <a key={pr.number} href={pr.url} target="_blank" rel="noreferrer" className="pull-row">
                       <div className="pull-row-left">
                         <span className="pull-number">#{pr.number}</span>
@@ -1335,21 +1424,21 @@ function ProjectDetail() {
                     <div className="row">
                       <div className="left-row">
                         <div className="no-div">
-                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#2D3748" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#2D3748" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
 
-                              <line x1="16" y1="2" x2="16" y2="6" />
-                              <line x1="8" y1="2" x2="8" y2="6" />
+                            <line x1="16" y1="2" x2="16" y2="6" />
+                            <line x1="8" y1="2" x2="8" y2="6" />
 
-                              <line x1="3" y1="10" x2="21" y2="10" />
+                            <line x1="3" y1="10" x2="21" y2="10" />
 
-                              <line x1="8" y1="14" x2="8.01" y2="14" strokeWidth="2.5" />
-                              <line x1="12" y1="14" x2="12.01" y2="14" strokeWidth="2.5" />
-                              <line x1="16" y1="14" x2="16.01" y2="14" strokeWidth="2.5" />
-                              <line x1="8" y1="18" x2="8.01" y2="18" strokeWidth="2.5" />
-                              <line x1="12" y1="18" x2="12.01" y2="18" strokeWidth="2.5" />
-                              <line x1="16" y1="18" x2="16.01" y2="18" strokeWidth="2.5" />
-                            </svg>
+                            <line x1="8" y1="14" x2="8.01" y2="14" strokeWidth="2.5" />
+                            <line x1="12" y1="14" x2="12.01" y2="14" strokeWidth="2.5" />
+                            <line x1="16" y1="14" x2="16.01" y2="14" strokeWidth="2.5" />
+                            <line x1="8" y1="18" x2="8.01" y2="18" strokeWidth="2.5" />
+                            <line x1="12" y1="18" x2="12.01" y2="18" strokeWidth="2.5" />
+                            <line x1="16" y1="18" x2="16.01" y2="18" strokeWidth="2.5" />
+                          </svg>
                           <span className="no">#48</span>
                         </div>
                         <div className="task-info">Add data export functionality</div>
@@ -1362,21 +1451,21 @@ function ProjectDetail() {
                     <div className="row">
                       <div className="left-row">
                         <div className="no-div">
-                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#2D3748" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#2D3748" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
 
-                              <line x1="16" y1="2" x2="16" y2="6" />
-                              <line x1="8" y1="2" x2="8" y2="6" />
+                            <line x1="16" y1="2" x2="16" y2="6" />
+                            <line x1="8" y1="2" x2="8" y2="6" />
 
-                              <line x1="3" y1="10" x2="21" y2="10" />
+                            <line x1="3" y1="10" x2="21" y2="10" />
 
-                              <line x1="8" y1="14" x2="8.01" y2="14" strokeWidth="2.5" />
-                              <line x1="12" y1="14" x2="12.01" y2="14" strokeWidth="2.5" />
-                              <line x1="16" y1="14" x2="16.01" y2="14" strokeWidth="2.5" />
-                              <line x1="8" y1="18" x2="8.01" y2="18" strokeWidth="2.5" />
-                              <line x1="12" y1="18" x2="12.01" y2="18" strokeWidth="2.5" />
-                              <line x1="16" y1="18" x2="16.01" y2="18" strokeWidth="2.5" />
-                            </svg>
+                            <line x1="8" y1="14" x2="8.01" y2="14" strokeWidth="2.5" />
+                            <line x1="12" y1="14" x2="12.01" y2="14" strokeWidth="2.5" />
+                            <line x1="16" y1="14" x2="16.01" y2="14" strokeWidth="2.5" />
+                            <line x1="8" y1="18" x2="8.01" y2="18" strokeWidth="2.5" />
+                            <line x1="12" y1="18" x2="12.01" y2="18" strokeWidth="2.5" />
+                            <line x1="16" y1="18" x2="16.01" y2="18" strokeWidth="2.5" />
+                          </svg>
                           <span className="no">#48</span>
                         </div>
                         <div className="task-info">Improve model accuracy</div>
@@ -1389,21 +1478,21 @@ function ProjectDetail() {
                     <div className="row">
                       <div className="left-row">
                         <div className="no-div">
-                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#2D3748" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#2D3748" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
 
-                              <line x1="16" y1="2" x2="16" y2="6" />
-                              <line x1="8" y1="2" x2="8" y2="6" />
+                            <line x1="16" y1="2" x2="16" y2="6" />
+                            <line x1="8" y1="2" x2="8" y2="6" />
 
-                              <line x1="3" y1="10" x2="21" y2="10" />
+                            <line x1="3" y1="10" x2="21" y2="10" />
 
-                              <line x1="8" y1="14" x2="8.01" y2="14" strokeWidth="2.5" />
-                              <line x1="12" y1="14" x2="12.01" y2="14" strokeWidth="2.5" />
-                              <line x1="16" y1="14" x2="16.01" y2="14" strokeWidth="2.5" />
-                              <line x1="8" y1="18" x2="8.01" y2="18" strokeWidth="2.5" />
-                              <line x1="12" y1="18" x2="12.01" y2="18" strokeWidth="2.5" />
-                              <line x1="16" y1="18" x2="16.01" y2="18" strokeWidth="2.5" />
-                            </svg>
+                            <line x1="8" y1="14" x2="8.01" y2="14" strokeWidth="2.5" />
+                            <line x1="12" y1="14" x2="12.01" y2="14" strokeWidth="2.5" />
+                            <line x1="16" y1="14" x2="16.01" y2="14" strokeWidth="2.5" />
+                            <line x1="8" y1="18" x2="8.01" y2="18" strokeWidth="2.5" />
+                            <line x1="12" y1="18" x2="12.01" y2="18" strokeWidth="2.5" />
+                            <line x1="16" y1="18" x2="16.01" y2="18" strokeWidth="2.5" />
+                          </svg>
                           <span className="no">#48</span>
                         </div>
                         <div className="task-info">UI:Student performance insight</div>

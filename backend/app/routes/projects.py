@@ -4,7 +4,8 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from ..extensions import db
 from bson import ObjectId
 import requests
-import re
+import re   
+from bson import ObjectId
 
 
 projects_bp = Blueprint('projects', __name__)
@@ -80,10 +81,25 @@ def get_all_projects():
 @projects_bp.route('/<project_id>', methods=['GET'])
 def get_project(project_id):
     project = db.projects.find_one({"_id": ObjectId(project_id)})
-    if project:
-        project['_id'] = str(project['_id'])
-        return jsonify(project)
-    return jsonify({"error": "Project not found"}), 404
+    if not project:
+        return jsonify({"error": "Project not found"}), 404
+
+    project['_id'] = str(project['_id'])
+
+    # Enrich members with username + avatar (same $in pattern as join_requests)
+    member_ids = [int(m) for m in project.get('members', [])]
+    users = {u["github_id"]: u for u in db.users.find({"github_id": {"$in": member_ids}})}
+
+    project['members_info'] = [
+        {
+            "github_id": m,
+            "username": users.get(int(m), {}).get("username", "Unknown"),
+            "avatar_url": users.get(int(m), {}).get("avatar_url")
+        }
+        for m in project.get('members', [])
+    ]
+
+    return jsonify(project)
 
 
 @projects_bp.route('/<project_id>/join', methods=['PUT'])
@@ -122,10 +138,51 @@ def view_join_requests(project_id):
         return jsonify({"error": "Unauthorized"}), 403
 
     pending_requests = list(db.join_requests.find({"project_id": ObjectId(project_id), "status": "pending"}))
+
+    # Collect all requester github_ids, look up their user docs in one query
+    requester_ids = [int(req["github_id"]) for req in pending_requests]
+    users = {u["github_id"]: u for u in db.users.find({"github_id": {"$in": requester_ids}})}
+
     for req in pending_requests:
         req['_id'] = str(req['_id'])
         req['project_id'] = str(req['project_id'])
+        user = users.get(int(req["github_id"]))
+        req['username'] = user.get("username") if user else "Unknown"
+        req['avatar_url'] = user.get("avatar_url") if user else None
+
     return jsonify(pending_requests)
+
+@projects_bp.route('/users/me/join_requests', methods=['GET'])
+@jwt_required()
+def view_my_join_requests():
+    current_user = get_jwt_identity()
+
+    # Find all projects owned by this user
+    owned_projects = list(db.projects.find({"owner_github_id": current_user}))
+    project_ids = [p["_id"] for p in owned_projects]
+    project_lookup = {str(p["_id"]): p for p in owned_projects}
+
+    # Get ALL requests (any status) across those projects in one query
+    all_requests = list(db.join_requests.find({
+        "project_id": {"$in": project_ids}
+    }))
+
+    # Enrich with requester username (single $in query)
+    requester_ids = [int(req["github_id"]) for req in all_requests]
+    users = {u["github_id"]: u for u in db.users.find({"github_id": {"$in": requester_ids}})}
+
+    for req in all_requests:
+        req['_id'] = str(req['_id'])
+        project = project_lookup.get(str(req['project_id']))
+        req['project_id'] = str(req['project_id'])
+        req['project_title'] = project.get('title') if project else "Unknown"
+        req['required_skills'] = project.get('required_skills', []) if project else []
+
+        user = users.get(int(req["github_id"]))
+        req['username'] = user.get("username") if user else "Unknown"
+        req['avatar_url'] = user.get("avatar_url") if user else None
+
+    return jsonify(all_requests)
 
 
 @projects_bp.route('/<project_id>/join_requests/<request_id>', methods=['PUT'])
