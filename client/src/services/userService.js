@@ -57,3 +57,18 @@ export const getGithubLanguages = (token) => {
         headers: { 'Authorization': `Bearer ${token}` }
     });
 };
+
+export const getPublicGithubStats = (username) => {
+    return api.get(`/api/users/profile/${username}/github-stats`);
+};
+
+export const getPublicGithubContributions = (username) => {
+    return api.get(`/api/users/profile/${username}/github-contributions`);
+};
+
+
+export const getUsersByIds = (token, ids) => {
+    return api.get(`/api/users/by-ids?ids=${ids.join(',')}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
+};

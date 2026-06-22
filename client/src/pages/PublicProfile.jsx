@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
-import { getPublicProfile } from "../services/userService.js";
+import { getPublicProfile, getPublicGithubStats, getPublicGithubContributions } from "../services/userService.js";
 import {
   FiMapPin, FiLink, FiCalendar, FiShare2, FiCode,
   FiAlertCircle, FiUserPlus, FiPlusCircle, FiStar,
@@ -77,6 +77,9 @@ export default function PublicProfile() {
   const [notFound, setNotFound] = useState(false);
   const [toast, setToast] = useState(null);
 
+  const [githubStats, setGithubStats] = useState(null);
+  const [contributions, setContributions] = useState({ weeks: [], total: 0, streak: 0 });
+
   const showToast = useCallback((message, type = "success") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
@@ -86,6 +89,18 @@ export default function PublicProfile() {
     getPublicProfile(username)
       .then((res) => { setProfile(res.data); setLoading(false); })
       .catch(() => { setNotFound(true); setLoading(false); });
+
+    getPublicGithubStats(username)
+      .then((res) => setGithubStats(res.data))
+      .catch((err) => console.error("Failed to load public GitHub stats:", err));
+
+    getPublicGithubContributions(username)
+      .then((res) => setContributions({
+        weeks: res.data.weeks || [],
+        total: res.data.total_contributions || 0,
+        streak: res.data.current_streak || 0,
+      }))
+      .catch((err) => console.error("Failed to load public contributions:", err));
   }, [username]);
 
   const handleShareProfile = async () => {
@@ -212,11 +227,11 @@ export default function PublicProfile() {
             </div>
             <div className="contribution-summary">
               <div className="contribution-stat">
-                <span className="contribution-stat__value">—</span>
+                <span className="contribution-stat__value">{contributions.total}</span>
                 <span className="contribution-stat__label">Total Contributions</span>
               </div>
               <div className="contribution-stat">
-                <span className="contribution-stat__value">— days</span>
+                <span className="contribution-stat__value">{contributions.streak} days</span>
                 <span className="contribution-stat__label">Current Streak</span>
               </div>
             </div>
@@ -232,13 +247,25 @@ export default function PublicProfile() {
                     <span>Mon</span><span>Wed</span><span>Fri</span>
                   </div>
                   <div className="heatmap-grid">
-                    {Array.from({ length: 52 }).map((_, wIdx) => (
-                      <div key={wIdx} className="heatmap-column">
-                        {Array.from({ length: 7 }).map((_, dIdx) => (
-                          <div key={dIdx} className="heatmap-cell" style={{ backgroundColor: LEVEL_COLORS[0] }} />
-                        ))}
-                      </div>
-                    ))}
+                    {contributions.weeks.length > 0 ? (
+                      contributions.weeks.map((week, wIdx) => (
+                        <div key={wIdx} className="heatmap-column">
+                          {week.map((count, dIdx) => (
+                            <div key={dIdx} className="heatmap-cell"
+                              style={{ backgroundColor: LEVEL_COLORS[getLevel(count)] }}
+                              title={`${count} contributions`} />
+                          ))}
+                        </div>
+                      ))
+                    ) : (
+                      Array.from({ length: 52 }).map((_, wIdx) => (
+                        <div key={wIdx} className="heatmap-column">
+                          {Array.from({ length: 7 }).map((_, dIdx) => (
+                            <div key={dIdx} className="heatmap-cell" style={{ backgroundColor: LEVEL_COLORS[0] }} />
+                          ))}
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
               </div>
@@ -286,27 +313,27 @@ export default function PublicProfile() {
             <div className="github-stats-list">
               <div className="github-stat-row">
                 <span className="github-stat-row__label"><FiBook size={15} /> Repositories</span>
-                <span className="github-stat-row__value">—</span>
+                <span className="github-stat-row__value">{githubStats?.repositories ?? "—"}</span>
               </div>
               <div className="github-stat-row">
                 <span className="github-stat-row__label"><FiGitCommit size={15} /> Commits</span>
-                <span className="github-stat-row__value">—</span>
+                <span className="github-stat-row__value">{githubStats?.commits ?? "—"}</span>
               </div>
               <div className="github-stat-row">
                 <span className="github-stat-row__label"><FiGitPullRequest size={15} /> Pull Requests</span>
-                <span className="github-stat-row__value">—</span>
+                <span className="github-stat-row__value">{githubStats?.pull_requests ?? "—"}</span>
               </div>
               <div className="github-stat-row">
                 <span className="github-stat-row__label"><FiAlertCircle size={15} /> Issues</span>
-                <span className="github-stat-row__value">—</span>
+                <span className="github-stat-row__value">{githubStats?.issues ?? "—"}</span>
               </div>
               <div className="github-stat-row">
                 <span className="github-stat-row__label"><FiEye size={15} /> Followers</span>
-                <span className="github-stat-row__value">—</span>
+                <span className="github-stat-row__value">{githubStats?.followers ?? "—"}</span>
               </div>
               <div className="github-stat-row">
                 <span className="github-stat-row__label"><FiUserPlus size={15} /> Following</span>
-                <span className="github-stat-row__value">—</span>
+                <span className="github-stat-row__value">{githubStats?.following ?? "—"}</span>
               </div>
             </div>
           </section>

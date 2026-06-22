@@ -301,3 +301,98 @@ def github_languages():
     ]
 
     return jsonify({"languages": languages[:6]})
+
+
+def get_user_with_token_by_username(username):
+    user = db.users.find_one({"username": username})
+    if not user or not user.get("github_access_token"):
+        return None
+    return user
+
+
+@users_bp.route("/profile/<string:username>/github-stats", methods=['GET'])
+def public_github_stats(username):
+    user = get_user_with_token_by_username(username)
+    if not user:
+        return jsonify({"error": "No GitHub data available."}), 404
+
+    to_date = datetime.utcnow()
+    from_date = to_date - timedelta(days=365)
+
+    data = run_github_query(user["github_access_token"], {
+        "login": user["username"],
+        "from": from_date.isoformat() + "Z",
+        "to": to_date.isoformat() + "Z"
+    })
+
+    if "errors" in data:
+        return jsonify({"error": data["errors"]}), 400
+
+    u = data["data"]["user"]
+    return jsonify({
+        "repositories": u["repositories"]["totalCount"],
+        "commits": u["contributionsCollection"]["totalCommitContributions"],
+        "pull_requests": u["pullRequests"]["totalCount"],
+        "issues": u["issues"]["totalCount"],
+        "followers": u["followers"]["totalCount"],
+        "following": u["following"]["totalCount"]
+    })
+
+
+@users_bp.route("/profile/<string:username>/github-contributions", methods=['GET'])
+def public_github_contributions(username):
+    user = get_user_with_token_by_username(username)
+    if not user:
+        return jsonify({"error": "No GitHub data available."}), 404
+
+    to_date = datetime.utcnow()
+    from_date = to_date - timedelta(days=365)
+
+    data = run_github_query(user["github_access_token"], {
+        "login": user["username"],
+        "from": from_date.isoformat() + "Z",
+        "to": to_date.isoformat() + "Z"
+    })
+
+    if "errors" in data:
+        return jsonify({"error": data["errors"]}), 400
+
+    calendar = data["data"]["user"]["contributionsCollection"]["contributionCalendar"]
+    weeks = [[d["contributionCount"] for d in week["contributionDays"]] for week in calendar["weeks"]]
+
+    all_days = [d for week in calendar["weeks"] for d in week["contributionDays"]]
+    all_days.reverse()
+    streak = 0
+    for d in all_days:
+        if d["contributionCount"] > 0:
+            streak += 1
+        else:
+            break
+
+    return jsonify({
+        "total_contributions": calendar["totalContributions"],
+        "current_streak": streak,
+        "weeks": weeks
+    })
+
+@users_bp.route('/by-ids', methods=['GET'])
+@jwt_required()
+def get_users_by_ids():
+    ids_param = request.args.get('ids', '')
+    if not ids_param:
+        return jsonify([])
+    try:
+        ids = [int(i) for i in ids_param.split(',') if i]
+    except ValueError:
+        return jsonify({"error": "Invalid ids"}), 400
+
+    users = list(db.users.find({"github_id": {"$in": ids}}))
+    result = []
+    for u in users:
+        result.append({
+            "github_id": u["github_id"],
+            "username": u.get("username"),
+            "name": u.get("name"),
+            "avatar": u.get("avatar_url") or u.get("avatar"),
+        })
+    return jsonify(result)

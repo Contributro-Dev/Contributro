@@ -2,6 +2,8 @@ import { useContext, useState, useEffect, useCallback } from "react";
 import { AuthContext } from "../context/AuthContext.jsx";
 import Sidebar from "../components/Sidebar.jsx";
 import EditProfileModal from "../components/EditProfileModal.jsx";
+import { getMyConnections } from "../services/connectionServices.js";
+import { getUsersByIds } from "../services/userService.js"; // alongside your other userService imports
 import {
   getGithubContributions,
   getGithubStats,
@@ -66,6 +68,8 @@ const ACTIVITY_ICON_MAP = {
 
 const CURRENT_MONTH = new Date().toLocaleString("default", { month: "long", year: "numeric" });
 
+
+// then render connections.length or map over IDs (you'll want a /users/by-ids route to resolve usernames)
 const MONTH_LABELS = (() => {
   const labels = [];
   const now = new Date();
@@ -114,6 +118,27 @@ export default function Profile() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
   const [modalInitialData, setModalInitialData] = useState(null);
+
+  const [connections, setConnections] = useState([]);
+  useEffect(() => {
+    if (!token) return;
+    getMyConnections(token).then(res => setConnections(res.data.connected_ids));
+
+}, [token]);
+  useEffect(() => {
+  if (!token) return;
+  getMyConnections(token)
+    .then((res) => {
+      const ids = res.data.connected_ids || [];
+      if (ids.length === 0) {
+        setConnections([]);
+        return;
+      }
+      return getUsersByIds(token, ids).then((res2) => setConnections(res2.data));
+    })
+    .catch((err) => console.error("Failed to load connections:", err));
+}, [token]);
+
 
   const showToast = useCallback((message, type = "success") => {
     setToast({ message, type });
@@ -417,6 +442,26 @@ export default function Profile() {
                 )}
               </div>
             </section>
+          <section className="card">
+  <h3 className="section-title section-title--sm">Connections ({connections.length})</h3>
+  {connections.length === 0 ? (
+    <p className="empty-msg">No connections yet.</p>
+  ) : (
+    <div className="languages-list">
+      {connections.map((c) => (
+        <div key={c.github_id} className="language-item" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <div className="profile-pic" style={{ width: "32px", height: "32px", fontSize: "13px" }}>
+            {c.avatar
+              ? <img src={c.avatar} alt={c.username} style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
+              : (c.username?.charAt(0).toUpperCase() || "U")}
+          </div>
+          <span className="language-item__name">{c.name || c.username}</span>
+        </div>
+      ))}
+    </div>
+  )}
+</section>
+
 
             <section className="card">
               <h3 className="section-title section-title--sm">GitHub Stats</h3>
