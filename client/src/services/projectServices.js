@@ -78,3 +78,9 @@ export const getTrendingProjects = () => {
     return api.get('/api/projects/trending');
 }
 
+export const leaveProject = (projectId, token) => {
+    return api.put(`/api/projects/${projectId}/leave`, {}, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
+}
+

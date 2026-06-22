@@ -31,16 +31,18 @@ function Projects() {
   // Join project
   // ─────────────────────────────────────────────
   const handleJoinProject = (projectId) => {
-    console.log("token:", token)
-    console.log("projectId:", projectId)
     joinProject(projectId, token).then(response => {
-      console.log(response.data)
       alert(response.data.message);
+      const update = (list) => list.map(p =>
+        p._id === projectId ? { ...p, has_pending_request: true } : p
+      );
+      setProjects(prev => update(prev));
+      setRecommendedProjects(prev => update(prev));
     }).catch(error => {
       console.error(error);
       alert(error.response.data.message);
-    })
-  }
+    });
+  };
 
   const handleRequestAction = (projectId, requestId, action) => {
     handleJoinRequest(projectId, requestId, action, token).then(() => {
@@ -346,13 +348,17 @@ function Projects() {
                         </div>
 
                         <div className="join-container">
-                          <button
-                            className={`join-btn ${isOwner ? "your-project-btn" : isMember ? "joined-btn" : ""}`}
-                            onClick={() => !isOwner && !isMember && handleJoinProject(project._id)}
-                            disabled={isOwner || isMember}
-                          >
-                            {isOwner ? "Your Project" : isMember ? "Joined ✓" : "Join"}
-                          </button>
+                          {isOwner ? (
+                            <button className="join-btn your-project-btn">Your Project</button>
+                          ) : isMember ? (
+                            <button className="join-btn joined-btn">Joined ✓</button>
+                          ) : project.has_pending_request ? (
+                            <button className="join-btn pending-btn" disabled>Request Pending</button>
+                          ) : (
+                            <button className="join-btn" onClick={(e) => { e.stopPropagation(); handleJoinProject(project._id); }}>
+                              Join Project
+                            </button>
+                          )}
                           <button className="bottom-bookmark-btn">
                             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                               <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />

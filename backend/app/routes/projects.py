@@ -88,10 +88,16 @@ def get_all_projects():
         star_counts[str(doc["_id"])] = doc["count"]
 
     my_starred_ids = set()
+    my_pending_ids = set()
     if current_user:
         my_starred_ids = {
             str(s["project_id"]) for s in db.stars.find(
                 {"github_id": current_user, "project_id": {"$in": project_ids}}
+            )
+        }
+        my_pending_ids = {
+            str(r["project_id"]) for r in db.join_requests.find(
+                {"github_id": current_user, "status": "pending", "project_id": {"$in": project_ids}}
             )
         }
 
@@ -100,19 +106,21 @@ def get_all_projects():
         project['_id'] = pid
         project['stars'] = star_counts.get(pid, 0)
         project['is_starred'] = pid in my_starred_ids
+        project['has_pending_request'] = pid in my_pending_ids
 
     return jsonify(projects)
 
-
 @projects_bp.route('/<project_id>', methods=['GET'])
 def get_project(project_id):
+    verify_jwt_in_request(optional=True)
+    current_user = get_jwt_identity()
+
     project = db.projects.find_one({"_id": ObjectId(project_id)})
     if not project:
         return jsonify({"error": "Project not found"}), 404
 
     project['_id'] = str(project['_id'])
 
-    # Enrich members with username + avatar (same $in pattern as join_requests)
     member_ids = [int(m) for m in project.get('members', [])]
     users = {u["github_id"]: u for u in db.users.find({"github_id": {"$in": member_ids}})}
 
@@ -124,6 +132,16 @@ def get_project(project_id):
         }
         for m in project.get('members', [])
     ]
+
+    star_count = db.stars.count_documents({"project_id": ObjectId(project_id)})
+    project['stars'] = star_count
+    project['is_starred'] = bool(current_user and db.stars.find_one(
+        {"project_id": ObjectId(project_id), "github_id": current_user}
+    ))
+
+    project['has_pending_request'] = bool(current_user and db.join_requests.find_one({
+        "project_id": ObjectId(project_id), "github_id": current_user, "status": "pending"
+    }))
 
     return jsonify(project)
 
@@ -480,10 +498,13 @@ def get_recent_activity():
 
     events.sort(key=sort_key, reverse=True)
 
-    # Serialize datetimes to ISO strings
+    # Serialize datetimes to ISO strings, explicitly marking naive datetimes as UTC
     for e in events:
-        if isinstance(e.get("timestamp"), datetime):
-            e["timestamp"] = e["timestamp"].isoformat()
+        ts = e.get("timestamp")
+        if isinstance(ts, datetime):
+            if ts.tzinfo is None:
+                ts = ts.replace(tzinfo=timezone.utc)
+            e["timestamp"] = ts.isoformat()
 
     return jsonify(events[:20])
 
@@ -535,3 +556,28 @@ def get_trending_projects():
             "stars": s["star_count"],
         })
     return jsonify(trending)
+
+
+@projects_bp.route('/<project_id>/leave', methods=['PUT'])
+@jwt_required()
+def leave_project(project_id):
+    current_user = get_jwt_identity()
+    project = get_project_or_404(project_id)
+    if not project:
+        return jsonify({"error": "Project not found"}), 404
+
+    if str(project['owner_github_id']) == str(current_user):
+        return jsonify({"error": "Project owner cannot leave their own project"}), 400
+
+    if current_user not in project.get('members', []):
+        return jsonify({"error": "You are not a member of this project"}), 400
+
+    db.projects.update_one(
+        {"_id": ObjectId(project_id)},
+        {"$pull": {"members": current_user}}
+    )
+
+    # Clean up any old join_requests so they could request to join again later
+    db.join_requests.delete_many({"project_id": ObjectId(project_id), "github_id": current_user})
+
+    return jsonify({"message": "Left project successfully"}), 200

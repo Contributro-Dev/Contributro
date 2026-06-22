@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom'
 import { useEffect, useContext, useState } from "react";
 import { AuthContext } from "../context/AuthContext.jsx";
-import { getProject, joinProject, getReadme, getCommits, getIssues, getPulls, getJoinRequests, handleJoinRequest } from "../services/projectServices.js";
+import { getProject, joinProject, leaveProject, getReadme, getCommits, getIssues, getPulls, getJoinRequests, handleJoinRequest } from "../services/projectServices.js";
 import Sidebar from "../components/Sidebar.jsx";
 import { useNavigate } from 'react-router-dom'
 import "./ProjectDetail.css";
@@ -111,6 +111,11 @@ function ProjectDetail() {
       .finally(() => setPullsLoading(false))
   }, [activeTab, id, token])
 
+
+  useEffect(() => {
+    if (project) setIsPending(project.has_pending_request || false);
+  }, [project]);
+
   const handelJoin = (() => {
     joinProject(id, token).then(() => {
       setIsPending(true)
@@ -118,6 +123,16 @@ function ProjectDetail() {
       console.error(error);
     })
   })
+
+  const handleLeaveProject = () => {
+    if (!window.confirm("Are you sure you want to leave this project?")) return;
+    leaveProject(id, token).then(() => {
+      navigate('/projects');
+    }).catch(err => {
+      console.error(err);
+      alert(err.response?.data?.error || "Failed to leave project");
+    });
+  };
 
   const handleRequestAction = (requestId, action) => {
     handleJoinRequest(id, requestId, action, token)
@@ -210,9 +225,9 @@ function ProjectDetail() {
             </button>
             <div className="profile-section" onClick={() => setShowProfileMenu(!showProfileMenu)}>
               <div className="profile-pic">{user?.avatar
-                    ? <img src={user.avatar} alt="avatar" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
-                    : firstLetter}</div>
-              <span>{ user?.name || user?.username || "User"}</span>
+                ? <img src={user.avatar} alt="avatar" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
+                : firstLetter}</div>
+              <span>{user?.name || user?.username || "User"}</span>
               <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <polyline points="6 9 12 15 18 9" />
               </svg>
@@ -367,7 +382,7 @@ function ProjectDetail() {
                           </svg>
                           <span>Joined</span>
                         </div>
-                        <button className="leaveproject-btn">Leave Project</button>
+                        <button className="leaveproject-btn" onClick={handleLeaveProject}>Leave Project</button>
                       </div>
                       <div className="view-issue-div">
                         <button className="view-issue-btn" onClick={() => setActiveTab("issues")}>
@@ -437,7 +452,7 @@ function ProjectDetail() {
               </div>
 
               {/* README */}
-              {isMember && isOwner &&
+              {(isMember || isOwner) &&
                 <div className={`readme-btn ${activeTab === "readme" ? "tab-active" : ""}`} onClick={() => setActiveTab("readme")}>
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" width="14" height="16">
                     <path d="M20,10 L70,10 L90,30 L90,110 L20,110 Z" fill="#ffffff" stroke="#333333" strokeWidth="3" strokeLinejoin="round" />
@@ -486,7 +501,7 @@ function ProjectDetail() {
               </div>
 
               {/* pull-request */}
-              {isMember && isOwner &&
+              {(isMember || isOwner) &&
                 <div className={`pull-request-btn ${activeTab === "pull-request" ? "tab-active" : ""}`} onClick={() => setActiveTab("pull-request")}>
                   <svg xmlns="http://www.w3.org/2000/svg" width={14} height={14} viewBox="0 0 640 640"><path d="M392 88C392 78.3 386.2 69.5 377.2 65.8C368.2 62.1 357.9 64.2 351 71L295 127C285.6 136.4 285.6 151.6 295 160.9L351 216.9C357.9 223.8 368.2 225.8 377.2 222.1C386.2 218.4 392 209.7 392 200L392 176L416 176C433.7 176 448 190.3 448 208L448 422.7C419.7 435 400 463.2 400 496C400 540.2 435.8 576 480 576C524.2 576 560 540.2 560 496C560 463.2 540.3 435 512 422.7L512 208C512 155 469 112 416 112L392 112L392 88zM136 144C136 130.7 146.7 120 160 120C173.3 120 184 130.7 184 144C184 157.3 173.3 168 160 168C146.7 168 136 157.3 136 144zM192 217.3C220.3 205 240 176.8 240 144C240 99.8 204.2 64 160 64C115.8 64 80 99.8 80 144C80 176.8 99.7 205 128 217.3L128 422.6C99.7 434.9 80 463.1 80 495.9C80 540.1 115.8 575.9 160 575.9C204.2 575.9 240 540.1 240 495.9C240 463.1 220.3 434.9 192 422.6L192 217.3zM136 496C136 482.7 146.7 472 160 472C173.3 472 184 482.7 184 496C184 509.3 173.3 520 160 520C146.7 520 136 509.3 136 496zM480 472C493.3 472 504 482.7 504 496C504 509.3 493.3 520 480 520C466.7 520 456 509.3 456 496C456 482.7 466.7 472 480 472z" /></svg>
                   <span>Pull Request</span>
@@ -837,28 +852,28 @@ function ProjectDetail() {
                       </div>
                     </div>
                   </div>
-                   {/* Recent Commits */}
-                      <div className="commits-section">
-                        <div className="commits-header">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2D3748" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <circle cx="12" cy="12" r="3" />
-                            <line x1="3" y1="12" x2="9" y2="12" />
-                            <line x1="15" y1="12" x2="21" y2="12" />
-                          </svg>
-                          <span className="commits-title">Recent Commits</span>
-                        </div>
-                        {commitsLoading && <div className="commits-empty">Loading commits...</div>}
-                        {!commitsLoading && commits.length === 0 && (
-                          <div className="commits-empty">No commits found, or no repo linked.</div>
-                        )}
-                        {!commitsLoading && commits.map(c => (
-                          <a key={c.sha} href={c.url} target="_blank" rel="noreferrer" className="commit-row">
-                            <span className="commit-sha">{c.sha}</span>
-                            <span className="commit-message">{c.message}</span>
-                            <span className="commit-meta">{c.author} · {new Date(c.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}</span>
-                          </a>
-                        ))}
-                      </div>
+                  {/* Recent Commits */}
+                  <div className="commits-section">
+                    <div className="commits-header">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2D3748" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="3" />
+                        <line x1="3" y1="12" x2="9" y2="12" />
+                        <line x1="15" y1="12" x2="21" y2="12" />
+                      </svg>
+                      <span className="commits-title">Recent Commits</span>
+                    </div>
+                    {commitsLoading && <div className="commits-empty">Loading commits...</div>}
+                    {!commitsLoading && commits.length === 0 && (
+                      <div className="commits-empty">No commits found, or no repo linked.</div>
+                    )}
+                    {!commitsLoading && commits.map(c => (
+                      <a key={c.sha} href={c.url} target="_blank" rel="noreferrer" className="commit-row">
+                        <span className="commit-sha">{c.sha}</span>
+                        <span className="commit-message">{c.message}</span>
+                        <span className="commit-meta">{c.author} · {new Date(c.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}</span>
+                      </a>
+                    ))}
+                  </div>
 
                 </div>
               )}

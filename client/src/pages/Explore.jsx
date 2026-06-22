@@ -67,16 +67,18 @@ function Explore() {
     // Join project
     // ─────────────────────────────────────────────
     const handleJoinProject = (projectId) => {
-        console.log("token:", token)
-        console.log("projectId:", projectId)
         joinProject(projectId, token).then(response => {
-            console.log(response.data)
             alert(response.data.message);
+            const update = (list) => list.map(p =>
+                p._id === projectId ? { ...p, has_pending_request: true } : p
+            );
+            setProjects(prev => update(prev));
+            setRecommendedProjects(prev => update(prev));
         }).catch(error => {
             console.error(error);
             alert(error.response.data.message);
-        })
-    }
+        });
+    };
 
     const handleToggleStar = (e, projectId) => {
         e.stopPropagation();
@@ -413,6 +415,8 @@ function Explore() {
                                                                     <button className="join-btn your-project-btn">Your Project</button>
                                                                 ) : isMember ? (
                                                                     <button className="join-btn joined-btn">Joined ✓</button>
+                                                                ) : project.has_pending_request ? (
+                                                                    <button className="join-btn pending-btn" disabled>Request Pending</button>
                                                                 ) : (
                                                                     <button className="join-btn" onClick={(e) => { e.stopPropagation(); handleJoinProject(project._id); }}>
                                                                         Join Project
@@ -536,6 +540,8 @@ function Explore() {
                                                             <button className="join-btn your-project-btn">Your Project</button>
                                                         ) : isMember ? (
                                                             <button className="join-btn joined-btn">Joined ✓</button>
+                                                        ) : project.has_pending_request ? (
+                                                            <button className="join-btn pending-btn" disabled>Request Pending</button>
                                                         ) : (
                                                             <button className="join-btn" onClick={(e) => { e.stopPropagation(); handleJoinProject(project._id); }}>
                                                                 Join Project

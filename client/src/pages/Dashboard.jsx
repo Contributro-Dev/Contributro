@@ -75,9 +75,9 @@ function Dashboard() {
 
   // BookMarks count
   useEffect(() => {
-  const savedIds = JSON.parse(localStorage.getItem('bookmarks') || '[]');
-  setBookmarkCount(savedIds.length);
-}, []);
+    const savedIds = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+    setBookmarkCount(savedIds.length);
+  }, []);
 
   // ─────────────────────────────────────────────
   // Load projects
@@ -103,13 +103,22 @@ function Dashboard() {
   //Load Recent Activity
   useEffect(() => {
     if (!token) return;
-    getRecentActivity(token).then((response) => {
-      setActivities(response.data);
-      setActivitiesLoading(false);
-    }).catch((error) => {
-      console.error("Failed to load recent activity:", error);
-      setActivitiesLoading(false);
-    });
+
+    const fetchActivity = () => {
+      getRecentActivity(token).then((response) => {
+        setActivities(response.data);
+        setActivitiesLoading(false);
+      }).catch((error) => {
+        console.error("Failed to load recent activity:", error);
+        setActivitiesLoading(false);
+      });
+    };
+
+    fetchActivity(); // initial load
+
+    const intervalId = setInterval(fetchActivity, 10000); // refetch every 30s
+
+    return () => clearInterval(intervalId); // cleanup on unmount
   }, [token]);
 
   //trending projects
