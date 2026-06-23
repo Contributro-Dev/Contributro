@@ -542,21 +542,25 @@ def get_recent_activity():
 @jwt_required()
 def toggle_star(project_id):
     current_user = get_jwt_identity()
-    project = db.projects.find_one({"_id": ObjectId(project_id)})
+    project = get_project_or_404(project_id)
     if not project:
         return jsonify({"error": "Project not found"}), 404
-    starred_by = project.get('starred_by', [])
-    if current_user in starred_by:
-        starred_by.remove(current_user)
+
+    existing = db.stars.find_one({"project_id": ObjectId(project_id), "github_id": current_user})
+
+    if existing:
+        db.stars.delete_one({"_id": existing["_id"]})
         starred = False
     else:
-        starred_by.append(current_user)
+        db.stars.insert_one({
+            "project_id": ObjectId(project_id),
+            "github_id": current_user,
+            "starred_at": datetime.now(timezone.utc)
+        })
         starred = True
-    db.projects.update_one(
-        {"_id": ObjectId(project_id)},
-        {"$set": {"starred_by": starred_by, "stars": len(starred_by)}}
-    )
-    return jsonify({"starred": starred, "star_count": len(starred_by)})
+
+    star_count = db.stars.count_documents({"project_id": ObjectId(project_id)})
+    return jsonify({"starred": starred, "star_count": star_count})
 
 
 @projects_bp.route('/<project_id>/leave', methods=['PUT'])

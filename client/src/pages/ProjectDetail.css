@@ -1648,11 +1648,11 @@
 }
 
 
-.commits-section { margin-top: 20px; }
+.commits-section { margin-top: 10px; padding: 15px ; border: 1px solid #e5e7eb; border-radius: 10px; }
 .commits-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-.commits-title { font-weight: 600; font-size: 14px; }
-.commit-row { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid #eee; font-size: 13px; text-decoration: none; color: inherit; }
-.commit-sha { font-family: monospace; color: #888; }
+.commits-title { font-weight: 700; font-size: 16px; }
+.commit-row { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid #dbdbdb; font-size: 13px; text-decoration: none; color: inherit; }
+.commit-sha { font-family: monospace; color: #497d16; }
 .commit-message { flex: 1; }
 .commit-meta { color: #999; font-size: 12px; }
 .commits-empty, .readme-loading, .readme-error, .readme-empty,
