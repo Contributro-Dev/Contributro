@@ -417,17 +417,121 @@ def get_trending_projects():
 @projects_bp.route('/activity/recent', methods=['GET'])
 @jwt_required()
 def get_recent_activity():
-    activities = list(db.activities.find({}).sort("created_at", -1).limit(10))
-    for a in activities:
-        a['_id'] = str(a['_id'])
-        if a.get('project_id'):
-            a['project_id'] = str(a['project_id'])
-        user = db.users.find_one({"github_id": int(a['github_id'])}) if a.get('github_id') else None
-        a['username'] = user['username'] if user else 'Unknown'
-        a['avatar_url'] = user.get('avatar_url', '') if user else ''
-        if isinstance(a.get('created_at'), datetime):
-            a['created_at'] = a['created_at'].isoformat()
-    return jsonify(activities)
+    current_user = get_jwt_identity()
+    token = get_requesting_user_token()
+
+    # Only projects the current user is a member of (owners are members too)
+    projects = list(db.projects.find({"members": current_user}))
+    project_lookup = {str(p["_id"]): p for p in projects}
+    project_ids = [p["_id"] for p in projects]
+
+    owner_ids = [int(p["owner_github_id"]) for p in projects]
+    join_requests = list(db.join_requests.find({
+        "project_id": {"$in": project_ids},
+        "status": {"$in": ["approved", "pending"]}
+    }))
+    requester_ids = [int(r["github_id"]) for r in join_requests]
+
+    all_user_ids = list(set(owner_ids + requester_ids))
+    users = {u["github_id"]: u for u in db.users.find({"github_id": {"$in": all_user_ids}})}
+
+    events = []
+
+    # ── Project created ──
+    for p in projects:
+        owner = users.get(int(p["owner_github_id"]))
+        events.append({
+            "type": "project_created",
+            "username": owner.get("username") if owner else "Unknown",
+            "avatar_url": owner.get("avatar_url") if owner else None,
+            "project_title": p.get("title"),
+            "timestamp": p.get("created_at"),
+        })
+
+    # ── Joined / requested to join ──
+    for r in join_requests:
+        requester = users.get(int(r["github_id"]))
+        project = project_lookup.get(str(r["project_id"]))
+        events.append({
+            "type": "joined_project" if r["status"] == "approved" else "join_requested",
+            "username": requester.get("username") if requester else "Unknown",
+            "avatar_url": requester.get("avatar_url") if requester else None,
+            "project_title": project.get("title") if project else "Unknown",
+            "timestamp": r.get("status_updated_at") or r.get("requested_at"),
+        })
+
+    # ── GitHub events (commits / issues / pulls) ──
+    for p in projects:
+        owner, repo = parse_owner_repo(p.get("github_repo_url"))
+        if not owner:
+            continue
+        title = p.get("title")
+
+        commits_resp = github_get(token, f"https://api.github.com/repos/{owner}/{repo}/commits",
+                                   params={"per_page": 3})
+        if commits_resp.status_code == 200:
+            for c in commits_resp.json():
+                author_info = c.get("author") or {}
+                events.append({
+                    "type": "commit",
+                    "username": author_info.get("login") or c["commit"]["author"]["name"],
+                    "avatar_url": author_info.get("avatar_url"),
+                    "project_title": title,
+                    "message": c["commit"]["message"].split("\n")[0],
+                    "timestamp": c["commit"]["author"]["date"],
+                })
+
+        issues_resp = github_get(token, f"https://api.github.com/repos/{owner}/{repo}/issues",
+                                  params={"state": "all", "per_page": 3, "sort": "created", "direction": "desc"})
+        if issues_resp.status_code == 200:
+            for i in issues_resp.json():
+                if "pull_request" in i:
+                    continue
+                events.append({
+                    "type": "issue_opened",
+                    "username": i["user"]["login"],
+                    "avatar_url": i["user"]["avatar_url"],
+                    "project_title": title,
+                    "message": i["title"],
+                    "timestamp": i["created_at"],
+                })
+
+        pulls_resp = github_get(token, f"https://api.github.com/repos/{owner}/{repo}/pulls",
+                                 params={"state": "all", "per_page": 3, "sort": "created", "direction": "desc"})
+        if pulls_resp.status_code == 200:
+            for pr in pulls_resp.json():
+                events.append({
+                    "type": "pr_merged" if pr.get("merged_at") else "pr_opened",
+                    "username": pr["user"]["login"],
+                    "avatar_url": pr["user"]["avatar_url"],
+                    "project_title": title,
+                    "message": pr["title"],
+                    "timestamp": pr.get("merged_at") or pr["created_at"],
+                })
+
+    # ── Normalize + sort by timestamp desc ──
+    def sort_key(e):
+        ts = e.get("timestamp")
+        if isinstance(ts, datetime):
+            return ts if ts.tzinfo else ts.replace(tzinfo=timezone.utc)
+        if isinstance(ts, str):
+            try:
+                return datetime.fromisoformat(ts.replace("Z", "+00:00"))
+            except ValueError:
+                pass
+        return datetime.min.replace(tzinfo=timezone.utc)
+
+    events.sort(key=sort_key, reverse=True)
+
+    # Serialize datetimes to ISO strings, explicitly marking naive datetimes as UTC
+    for e in events:
+        ts = e.get("timestamp")
+        if isinstance(ts, datetime):
+            if ts.tzinfo is None:
+                ts = ts.replace(tzinfo=timezone.utc)
+            e["timestamp"] = ts.isoformat()
+
+    return jsonify(events[:10])
 
 
 @projects_bp.route('/<project_id>/star', methods=['PUT'])
