@@ -396,3 +396,130 @@ def get_users_by_ids():
             "avatar": u.get("avatar_url") or u.get("avatar"),
         })
     return jsonify(result)
+
+
+@users_bp.route('/top-contributors', methods=['GET'])
+def get_top_contributors():
+    from ..extensions import db as _db
+    all_users = list(_db.users.find({}))
+    scored = []
+    for u in all_users:
+        uid = str(u['github_id'])
+        projects_created = _db.projects.count_documents({"owner_github_id": uid})
+        projects_joined = _db.projects.count_documents({"members": uid})
+        approved_requests = _db.join_requests.count_documents({"github_id": uid, "status": "approved"})
+        activity_count = _db.activities.count_documents({"github_id": uid})
+        score = (projects_created * 10) + (projects_joined * 5) + (approved_requests * 3) + activity_count
+        scored.append({
+            "github_id": uid,
+            "username": u.get("username", "Unknown"),
+            "avatar_url": u.get("avatar_url", ""),
+            "score": score
+        })
+    scored.sort(key=lambda x: x['score'], reverse=True)
+    return jsonify(scored[:5])
+
+
+
+@users_bp.route('/profile/<username>/github-stats', methods=['GET'])
+def get_public_github_stats(username):
+    user = db.users.find_one({"username": username})
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    token = user.get("github_access_token")
+    gh_username = user.get("username")
+
+    headers = {"Accept": "application/vnd.github+json"}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
+    import requests as req
+    user_resp = req.get(f"https://api.github.com/users/{gh_username}", headers=headers)
+    if user_resp.status_code != 200:
+        return jsonify({"error": "GitHub API error"}), 502
+
+    gh = user_resp.json()
+
+    repos_resp = req.get(f"https://api.github.com/users/{gh_username}/repos",
+                         headers=headers, params={"per_page": 10, "sort": "pushed"})
+    repos = repos_resp.json() if repos_resp.status_code == 200 else []
+
+    lang_bytes = {}
+    for r in repos:
+        if r.get("language"):
+            lang_bytes[r["language"]] = lang_bytes.get(r["language"], 0) + (r.get("size", 0))
+
+    total = sum(lang_bytes.values()) or 1
+    languages = sorted(
+        [{"name": k, "percent": round(v / total * 100), "color": "#6366f1"} for k, v in lang_bytes.items()],
+        key=lambda x: x["percent"], reverse=True
+    )[:6]
+
+    return jsonify({
+        "repositories": gh.get("public_repos", 0),
+        "commits": 0,
+        "pull_requests": 0,
+        "issues": 0,
+        "followers": gh.get("followers", 0),
+        "following": gh.get("following", 0),
+        "languages": languages,
+    })
+
+
+@users_bp.route('/profile/<username>/github-contributions', methods=['GET'])
+def get_public_github_contributions(username):
+    user = db.users.find_one({"username": username})
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    token = user.get("github_access_token")
+    gh_username = user.get("username")
+
+    if not token:
+        return jsonify({"weeks": [], "total_contributions": 0, "current_streak": 0})
+
+    import requests as req
+    query = """
+    query($login: String!) {
+      user(login: $login) {
+        contributionsCollection {
+          contributionCalendar {
+            totalContributions
+            weeks {
+              contributionDays {
+                contributionCount
+              }
+            }
+          }
+        }
+      }
+    }
+    """
+    resp = req.post(
+        "https://api.github.com/graphql",
+        json={"query": query, "variables": {"login": gh_username}},
+        headers={"Authorization": f"Bearer {token}"}
+    )
+
+    if resp.status_code != 200:
+        return jsonify({"weeks": [], "total_contributions": 0, "current_streak": 0})
+
+    data = resp.json()
+    calendar = data.get("data", {}).get("user", {}).get("contributionsCollection", {}).get("contributionCalendar", {})
+    weeks_raw = calendar.get("weeks", [])
+    weeks = [[day["contributionCount"] for day in week["contributionDays"]] for week in weeks_raw]
+
+    all_days = [count for week in weeks for count in week]
+    streak = 0
+    for count in reversed(all_days):
+        if count > 0:
+            streak += 1
+        else:
+            break
+
+    return jsonify({
+        "weeks": weeks,
+        "total_contributions": calendar.get("totalContributions", 0),
+        "current_streak": streak,
+    })
