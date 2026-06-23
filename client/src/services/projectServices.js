@@ -1,86 +1,74 @@
-import api from './api.js';
+import axios from "axios";
 
-export const getAllProjects = () => {
-    return api.get('/api/projects');
-}
+const BASE_URL = "http://localhost:8080/api";
 
-export const getProject = (projectId, token) => {
-    return api.get(`/api/projects/${projectId}`);
-}
+export const getAllProjects = () =>
+    axios.get(`${BASE_URL}/projects/`);
 
-export const createProject = (projectData, token) => {
-    return api.post('/api/projects/', projectData, {
-        headers: { 'Authorization': `Bearer ${token}` }
+export const getProject = (projectId, token) =>
+    axios.get(`${BASE_URL}/projects/${projectId}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
     });
-}
 
-export const joinProject = (projectId, token) => {
-    return api.put(`/api/projects/${projectId}/join`, {}, {
-        headers: { 'Authorization': `Bearer ${token}` }
+export const createProject = (projectData, token) =>
+    axios.post(`${BASE_URL}/projects/`, projectData, {
+        headers: { Authorization: `Bearer ${token}` }
     });
-}
 
-export const getJoinRequests = (projectId, token) => {
-    return api.get(`/api/projects/${projectId}/join_requests`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+export const joinProject = (projectId, token) =>
+    axios.put(`${BASE_URL}/projects/${projectId}/join`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
     });
-}
 
-export const getMyJoinRequests = (token) => {
-    return api.get('/api/projects/users/me/join_requests', {
-        headers: { 'Authorization': `Bearer ${token}` }
+export const leaveProject = (projectId, token) =>
+    axios.put(`${BASE_URL}/projects/${projectId}/leave`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
     });
-}
 
-export const handleJoinRequest = (projectId, requestId, action, token) => {
-  return api.put(`/api/projects/${projectId}/join_requests/${requestId}`, { action }, {
-    headers: { 'Authorization': `Bearer ${token}` }
-  });
-}
-
-export const getReadme = (projectId, token) => {
-    return api.get(`/api/projects/${projectId}/readme`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+export const getJoinRequests = (projectId, token) =>
+    axios.get(`${BASE_URL}/projects/${projectId}/join_requests`, {
+        headers: { Authorization: `Bearer ${token}` }
     });
-}
 
-export const getCommits = (projectId, token) => {
-    return api.get(`/api/projects/${projectId}/commits`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+export const handleJoinRequest = (projectId, requestId, action, token) =>
+    axios.put(`${BASE_URL}/projects/${projectId}/join_requests/${requestId}`, { action }, {
+        headers: { Authorization: `Bearer ${token}` }
     });
-}
 
-export const getIssues = (projectId, token) => {
-    return api.get(`/api/projects/${projectId}/issues`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+export const getReadme = (projectId, token) =>
+    axios.get(`${BASE_URL}/projects/${projectId}/readme`, {
+        headers: { Authorization: `Bearer ${token}` }
     });
-}
 
-export const getPulls = (projectId, token) => {
-    return api.get(`/api/projects/${projectId}/pulls`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+export const getCommits = (projectId, token) =>
+    axios.get(`${BASE_URL}/projects/${projectId}/commits`, {
+        headers: { Authorization: `Bearer ${token}` }
     });
-}
 
-export const getRecentActivity = (token) => {
-    return api.get('/api/projects/activity/recent', {
-        headers: { 'Authorization': `Bearer ${token}` }
+export const getIssues = (projectId, token) =>
+    axios.get(`${BASE_URL}/projects/${projectId}/issues`, {
+        headers: { Authorization: `Bearer ${token}` }
     });
-}
 
-export const toggleStar = (projectId, token) => {
-    return api.put(`/api/projects/${projectId}/star`, {}, {
-        headers: { 'Authorization': `Bearer ${token}` }
+export const getPulls = (projectId, token) =>
+    axios.get(`${BASE_URL}/projects/${projectId}/pulls`, {
+        headers: { Authorization: `Bearer ${token}` }
     });
-}
 
-export const getTrendingProjects = () => {
-    return api.get('/api/projects/trending');
-}
-
-export const leaveProject = (projectId, token) => {
-    return api.put(`/api/projects/${projectId}/leave`, {}, {
-        headers: { 'Authorization': `Bearer ${token}` }
+export const toggleStar = (projectId, token) =>
+    axios.put(`${BASE_URL}/projects/${projectId}/star`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
     });
-}
 
+export const getTrendingProjects = () =>
+    axios.get(`${BASE_URL}/projects/trending`);
+
+export const getRecentActivity = (token) =>
+    axios.get(`${BASE_URL}/projects/activity/recent`, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+
+export const getMyJoinRequests = (token) =>
+    axios.get(`${BASE_URL}/projects/users/me/join_requests`, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
