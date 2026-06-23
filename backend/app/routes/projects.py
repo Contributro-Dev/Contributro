@@ -414,6 +414,10 @@ def get_trending_projects():
     return jsonify(trending)
 
 
+# DANGER ⚠️ (EDIT BELOW ROUTE AT YOUR OWN RISK)
+
+# Recent Activity ---------------------------------------------------------------
+
 @projects_bp.route('/activity/recent', methods=['GET'])
 @jwt_required()
 def get_recent_activity():

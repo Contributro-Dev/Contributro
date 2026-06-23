@@ -191,7 +191,7 @@ export default function Profile() {
   const handleSaveProfile = useCallback(async (formData) => {
     setEditLoading(true);
     try {
-      const res = await updateMe(token, formData);
+      const res = await updateMe(formData ,token);
       updateUser(res.data);
       setShowEditModal(false);
       setModalInitialData(null);
