@@ -28,10 +28,25 @@ def update_user(github_id):
 
 @users_bp.route('/', methods=['GET'])
 def all_users():
-    users = list(db.users.find())
-    for user in users:
-        user.pop('_id', None)
-    return jsonify(users)
+    ids_param = request.args.get('ids')
+    if ids_param:
+        try:
+            ids = [int(i) for i in ids_param.split(',') if i]
+        except ValueError:
+            return jsonify({"error": "Invalid ids"}), 400
+        users = list(db.users.find({"github_id": {"$in": ids}}))
+    else:
+        users = list(db.users.find())
+
+    result = []
+    for u in users:
+        result.append({
+            "github_id": u.get("github_id"),
+            "username": u.get("username"),
+            "name": u.get("name"),
+            "avatar": u.get("avatar_url") or u.get("avatar"),
+        })
+    return jsonify(result)
 
 
 @users_bp.route('/<int:github_id>/skills', methods=['PATCH'])

@@ -119,23 +119,21 @@ export default function Profile() {
   const [editLoading, setEditLoading] = useState(false);
   const [modalInitialData, setModalInitialData] = useState(null);
 
+
+
   const [connections, setConnections] = useState([]);
+  console.log("TOKEN:", token);
   useEffect(() => {
     if (!token) return;
-    getMyConnections(token).then(res => setConnections(res.data.connected_ids));
-
-}, [token]);
-  useEffect(() => {
-  if (!token) return;
-  getMyConnections(token)
-    .then((res) => {
-      const ids = res.data.connected_ids || [];
-      if (ids.length === 0) {
-        setConnections([]);
-        return;
-      }
-      return getUsersByIds(token, ids).then((res2) => setConnections(res2.data));
-    })
+    getMyConnections(token)
+      .then((res) => {
+        const ids = res.data.connected_ids || [];
+        if (ids.length === 0) {
+          setConnections([]);
+          return;
+        }
+       return getUsersByIds(ids, token).then((res2) => setConnections(res2.data));
+     })
     .catch((err) => console.error("Failed to load connections:", err));
 }, [token]);
 
