@@ -1119,7 +1119,7 @@
      display: flex;
      flex-direction: column;
      gap: 12px;
-     padding: 20px 12px;
+     padding: 20px 10px;
      overflow-y: auto;
      scrollbar-width: none;
  }
@@ -1270,26 +1270,27 @@
  }
 
  .contributor-avatar {
-     width: 28px;
-     height: 28px;
+     width: 16px;
+     height: 16px;
      border-radius: 50%;
      background: linear-gradient(135deg, #7c3aed, #6366f1);
      color: #fff;
      display: flex;
      align-items: center;
      justify-content: center;
-     font-size: 0.72rem;
+     font-size: 0.7rem;
      font-weight: 700;
      flex-shrink: 0;
  }
 
  .contributor-name {
      flex: 1;
-     font-size: 0.75rem;
+     flex-direction: column;
+     align-items: flex-start;
+     font-size: 0.6rem;
      font-weight: 500;
      color: #374151;
      display: flex;
-     align-items: center;
      gap: 4px;
  }
 
@@ -1318,7 +1319,7 @@
 
  .right-activity-item {
      display: flex;
-     align-items: flex-start;
+     align-items: center;
      gap: 8px;
  }
 

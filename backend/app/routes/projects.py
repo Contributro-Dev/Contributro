@@ -574,3 +574,74 @@ def leave_project(project_id):
     )
     log_activity(current_user, "left project", project.get('title', ''), project_id)
     return jsonify({"message": "Left project successfully"})
+
+
+
+# ─────────────────────────────────────────────
+# Owner-only: edit, delete, manage members
+# ─────────────────────────────────────────────
+
+@projects_bp.route('/<project_id>', methods=['PUT'])
+@jwt_required()
+def update_project(project_id):
+    current_user = get_jwt_identity()
+    project = get_project_or_404(project_id)
+    if not project:
+        return jsonify({"error": "Project not found"}), 404
+    if str(project['owner_github_id']) != str(current_user):
+        return jsonify({"error": "Unauthorized"}), 403
+
+    data = request.get_json()
+    allowed_fields = ['title', 'description', 'required_skills', 'team_size', 'timeline', 'status', 'github_repo']
+    update_data = {k: v for k, v in data.items() if k in allowed_fields}
+
+    if 'github_repo' in update_data:
+        update_data['github_repo_url'] = update_data.pop('github_repo')
+
+    if not update_data:
+        return jsonify({"error": "No valid fields to update"}), 400
+
+    db.projects.update_one({"_id": ObjectId(project_id)}, {"$set": update_data})
+    return jsonify({"message": "Project updated successfully"}), 200
+
+
+@projects_bp.route('/<project_id>', methods=['DELETE'])
+@jwt_required()
+def delete_project(project_id):
+    current_user = get_jwt_identity()
+    project = get_project_or_404(project_id)
+    if not project:
+        return jsonify({"error": "Project not found"}), 404
+    if str(project['owner_github_id']) != str(current_user):
+        return jsonify({"error": "Unauthorized"}), 403
+
+    db.projects.delete_one({"_id": ObjectId(project_id)})
+    db.join_requests.delete_many({"project_id": ObjectId(project_id)})
+    db.stars.delete_many({"project_id": ObjectId(project_id)})
+
+    return jsonify({"message": "Project deleted successfully"}), 200
+
+
+@projects_bp.route('/<project_id>/members/<github_id>', methods=['DELETE'])
+@jwt_required()
+def remove_member(project_id, github_id):
+    current_user = get_jwt_identity()
+    project = get_project_or_404(project_id)
+    if not project:
+        return jsonify({"error": "Project not found"}), 404
+    if str(project['owner_github_id']) != str(current_user):
+        return jsonify({"error": "Unauthorized"}), 403
+
+    if str(github_id) == str(project['owner_github_id']):
+        return jsonify({"error": "Owner cannot remove themselves"}), 400
+
+    if github_id not in project.get('members', []):
+        return jsonify({"error": "User is not a member of this project"}), 400
+
+    db.projects.update_one(
+        {"_id": ObjectId(project_id)},
+        {"$pull": {"members": github_id}}
+    )
+    db.join_requests.delete_many({"project_id": ObjectId(project_id), "github_id": github_id})
+
+    return jsonify({"message": "Member removed successfully"}), 200

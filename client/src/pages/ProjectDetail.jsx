@@ -1,12 +1,13 @@
 import { useParams } from 'react-router-dom'
 import { useEffect, useContext, useState } from "react";
 import { AuthContext } from "../context/AuthContext.jsx";
-import { getProject, joinProject, leaveProject, getReadme, getCommits, getIssues, getPulls, getJoinRequests, handleJoinRequest } from "../services/projectServices.js";
+import { getProject, joinProject, leaveProject, getReadme, getCommits, getIssues, getPulls, getJoinRequests, handleJoinRequest, updateProject, deleteProject, removeMember } from "../services/projectServices.js";
 import Sidebar from "../components/Sidebar.jsx";
 import { useNavigate } from 'react-router-dom'
 import "./ProjectDetail.css";
 import codeIcon from "../assets/project-icon.png"
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 
 function ProjectDetail() {
@@ -30,6 +31,10 @@ function ProjectDetail() {
 
   const [joinRequests, setJoinRequests] = useState(null);
   const [joinRequestsLoading, setJoinRequestsLoading] = useState(false);
+
+  const [settingsForm, setSettingsForm] = useState(null);
+  const [settingsSaving, setSettingsSaving] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
 
   const [commits, setCommits] = useState([]);
   const [commitsLoading, setCommitsLoading] = useState(false);
@@ -91,6 +96,20 @@ function ProjectDetail() {
       .finally(() => setJoinRequestsLoading(false))
   }, [activeTab, project, id, token, user])
 
+  useEffect(() => {
+    if (project && activeTab === "settings") {
+      setSettingsForm({
+        title: project.title || "",
+        description: project.description || "",
+        required_skills: (project.required_skills || []).join(", "),
+        team_size: project.team_size || "",
+        timeline: project.timeline || "",
+        status: project.status || "open",
+        github_repo: project.github_repo_url || "",
+      });
+    }
+  }, [project, activeTab]);
+
   // Load issues when Issues tab is opened
   useEffect(() => {
     if (activeTab !== "issues") return
@@ -131,6 +150,52 @@ function ProjectDetail() {
     }).catch(err => {
       console.error(err);
       alert(err.response?.data?.error || "Failed to leave project");
+    });
+  };
+
+
+  const handleSettingsChange = (field, value) => {
+    setSettingsForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSaveSettings = () => {
+    setSettingsSaving(true);
+    const payload = {
+      ...settingsForm,
+      required_skills: settingsForm.required_skills.split(",").map(s => s.trim()).filter(Boolean),
+      team_size: Number(settingsForm.team_size) || settingsForm.team_size,
+    };
+    updateProject(id, payload, token).then(() => {
+      return getProject(id, token);
+    }).then(res => {
+      setProject(res.data);
+      alert("Project updated successfully");
+    }).catch(err => {
+      console.error(err);
+      alert(err.response?.data?.error || "Failed to update project");
+    }).finally(() => setSettingsSaving(false));
+  };
+
+  const handleDeleteProject = () => {
+    if (deleteConfirmText !== project.title) {
+      alert("Project name doesn't match. Type it exactly to confirm deletion.");
+      return;
+    }
+    deleteProject(id, token).then(() => {
+      navigate('/projects');
+    }).catch(err => {
+      console.error(err);
+      alert(err.response?.data?.error || "Failed to delete project");
+    });
+  };
+
+  const handleRemoveMember = (memberGithubId) => {
+    if (!window.confirm("Remove this member from the project?")) return;
+    removeMember(id, memberGithubId, token).then(() => {
+      getProject(id, token).then(res => setProject(res.data));
+    }).catch(err => {
+      console.error(err);
+      alert(err.response?.data?.error || "Failed to remove member");
     });
   };
 
@@ -884,7 +949,7 @@ function ProjectDetail() {
                   {readmeError && <div className="readme-error">{readmeError}</div>}
                   {!readmeLoading && !readmeError && readme && (
                     <div className="readme-markdown">
-                      <ReactMarkdown>{readme}</ReactMarkdown>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{readme}</ReactMarkdown>
                     </div>
                   )}
                   {!readmeLoading && !readmeError && !readme && (
@@ -1000,6 +1065,123 @@ function ProjectDetail() {
                 </div>
               )}
 
+              {activeTab === "settings" && settingsForm && (
+                <div className="settings-div">
+
+                  {/* Edit Details */}
+                  <div className="settings-section">
+                    <div className="settings-section-header">
+                      <span className="settings-section-title">Edit Project Details</span>
+                    </div>
+                    <div className="settings-form">
+                      <label className="settings-label">
+                        Title
+                        <input
+                          type="text"
+                          value={settingsForm.title}
+                          onChange={(e) => handleSettingsChange('title', e.target.value)}
+                          className="settings-input"
+                        />
+                      </label>
+                      <label className="settings-label">
+                        Description
+                        <textarea
+                          value={settingsForm.description}
+                          onChange={(e) => handleSettingsChange('description', e.target.value)}
+                          className="settings-textarea"
+                        />
+                      </label>
+                      <label className="settings-label">
+                        Required Skills (comma-separated)
+                        <input
+                          type="text"
+                          value={settingsForm.required_skills}
+                          onChange={(e) => handleSettingsChange('required_skills', e.target.value)}
+                          className="settings-input"
+                        />
+                      </label>
+                      <div className="settings-row">
+                        <label className="settings-label">
+                          Team Size
+                          <input
+                            type="number"
+                            value={settingsForm.team_size}
+                            onChange={(e) => handleSettingsChange('team_size', e.target.value)}
+                            className="settings-input"
+                          />
+                        </label>
+                        <label className="settings-label">
+                          Status
+                          <select
+                            value={settingsForm.status}
+                            onChange={(e) => handleSettingsChange('status', e.target.value)}
+                            className="settings-input"
+                          >
+                            <option value="open">Open</option>
+                            <option value="completed">Completed</option>
+                            <option value="recruiting">Recruiting</option>
+                          </select>
+                        </label>
+                      </div>
+                      <label className="settings-label">
+                        GitHub Repository URL
+                        <input
+                          type="text"
+                          value={settingsForm.github_repo}
+                          onChange={(e) => handleSettingsChange('github_repo', e.target.value)}
+                          className="settings-input"
+                        />
+                      </label>
+                      <button className="settings-save-btn" onClick={handleSaveSettings} disabled={settingsSaving}>
+                        {settingsSaving ? "Saving..." : "Save Changes"}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Manage Members */}
+                  <div className="settings-section">
+                    <div className="settings-section-header">
+                      <span className="settings-section-title">Manage Members</span>
+                    </div>
+                    {project.members_info?.map(member => (
+                      <div key={member.github_id} className="settings-member-row">
+                        <div className="contributor-avatar">{member.username?.charAt(0).toUpperCase()}</div>
+                        <span className="contributor-name">{member.username}</span>
+                        {String(member.github_id) === String(project.owner_github_id) ? (
+                          <span className="header-owner-badge">Owner</span>
+                        ) : (
+                          <button className="settings-remove-btn" onClick={() => handleRemoveMember(member.github_id)}>
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Danger Zone */}
+                  <div className="settings-section settings-danger-zone">
+                    <div className="settings-section-header">
+                      <span className="settings-section-title" style={{ color: "#dc2626" }}>Danger Zone</span>
+                    </div>
+                    <p className="settings-danger-text">
+                      Deleting this project is permanent and cannot be undone. All members, join requests, and stars will be removed.
+                    </p>
+                    <label className="settings-label">
+                      Type <strong>{project.title}</strong> to confirm
+                      <input
+                        type="text"
+                        value={deleteConfirmText}
+                        onChange={(e) => setDeleteConfirmText(e.target.value)}
+                        className="settings-input"
+                      />
+                    </label>
+                    <button className="settings-delete-btn" onClick={handleDeleteProject}>
+                      Delete Project
+                    </button>
+                  </div>
+
+                </div>
+              )}
             </div>
 
           </div>

@@ -72,3 +72,21 @@ export const getMyJoinRequests = (token) =>
     axios.get(`${BASE_URL}/projects/users/me/join_requests`, {
         headers: { Authorization: `Bearer ${token}` }
     });
+    
+
+//⬇️ ----------------------- UPDATE PROJECT OWNERS ONLY ----------------------- ⬇️
+
+export const updateProject = (projectId, data, token) =>
+    axios.put(`${BASE_URL}/projects/${projectId}`, data, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+
+export const deleteProject = (projectId, token) =>
+    axios.delete(`${BASE_URL}/projects/${projectId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+
+export const removeMember = (projectId, githubId, token) =>
+    axios.delete(`${BASE_URL}/projects/${projectId}/members/${githubId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+    });

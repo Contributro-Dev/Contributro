@@ -1838,3 +1838,260 @@
     text-align: center;
     flex-shrink: 0;
 }
+
+
+
+
+/* Readme */
+
+.readme-markdown {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px 28px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  line-height: 1.7;
+  color: #374151;
+  font-size: 0.9rem;
+}
+
+.readme-markdown h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.readme-markdown h2 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 28px 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.readme-markdown h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 20px 0 8px;
+}
+
+.readme-markdown p {
+  margin: 0 0 14px;
+}
+
+.readme-markdown ul, .readme-markdown ol {
+  margin: 0 0 14px;
+  padding-left: 24px;
+}
+
+.readme-markdown li {
+  margin-bottom: 6px;
+}
+
+.readme-markdown li > ul, .readme-markdown li > ol {
+  margin-top: 6px;
+}
+
+.readme-markdown a {
+  color: #7c3aed;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.readme-markdown a:hover {
+  text-decoration: underline;
+}
+
+.readme-markdown strong {
+  color: #111827;
+  font-weight: 700;
+}
+
+.readme-markdown code {
+  background: #f3f4f6;
+  color: #db2777;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  font-family: 'Fira Code', 'Courier New', monospace;
+}
+
+.readme-markdown pre {
+  background: #1e1e2e;
+  color: #f3f4f6;
+  padding: 16px;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 0 0 16px;
+}
+
+.readme-markdown pre code {
+  background: none;
+  color: inherit;
+  padding: 0;
+  font-size: 0.82rem;
+}
+
+.readme-markdown blockquote {
+  border-left: 3px solid #ddd6fe;
+  background: #f5f3ff;
+  padding: 10px 16px;
+  margin: 0 0 16px;
+  color: #6b7280;
+  border-radius: 0 6px 6px 0;
+}
+
+.readme-markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 16px;
+  font-size: 0.85rem;
+}
+
+.readme-markdown th, .readme-markdown td {
+  border: 1px solid #e5e7eb;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.readme-markdown th {
+  background: #f9fafb;
+  font-weight: 700;
+  color: #111827;
+}
+
+.readme-markdown img {
+  max-width: 100%;
+  border-radius: 8px;
+  margin: 8px 0;
+}
+
+.readme-markdown hr {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 20px 0;
+}
+
+.readme-markdown input[type="checkbox"] {
+  margin-right: 8px;
+}
+
+/* settings */
+
+.settings-div {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.settings-section {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.settings-section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.settings-row {
+  display: flex;
+  gap: 14px;
+}
+
+.settings-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #374151;
+  flex: 1;
+}
+
+.settings-input, .settings-textarea {
+  padding: 8px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 400;
+  outline: none;
+}
+
+.settings-textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.settings-save-btn {
+  align-self: flex-start;
+  padding: 8px 18px;
+  background: #7c3aed;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.settings-member-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.settings-remove-btn {
+  margin-left: auto;
+  padding: 6px 12px;
+  background: #fef2f2;
+  color: #ef4444;
+  border: 1px solid #fee2e2;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.settings-remove-btn:hover {
+  background: #ef4444;
+  color: #fff;
+}
+
+.settings-danger-zone {
+  border: 1px solid #fee2e2;
+}
+
+.settings-danger-text {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin: 10px 0 14px;
+}
+
+.settings-delete-btn {
+  margin-top: 12px;
+  padding: 8px 18px;
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}

@@ -647,7 +647,7 @@ function Explore() {
                         <div className="right-section">
                             <div className="match-header">
                                 <span className="right-section-title">Recent Activity</span>
-                                <a className="view-all-link">View all →</a>
+                                <a className="view-all-link" >View all →</a>
                             </div>
                             <div className="right-activity-list">
                                 {recentActivity.length === 0 ? (
