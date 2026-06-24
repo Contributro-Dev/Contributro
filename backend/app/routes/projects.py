@@ -76,6 +76,9 @@ def create_project():
 
 @projects_bp.route('/', methods=['GET'])
 def get_all_projects():
+    verify_jwt_in_request(optional=True)
+    current_user = get_jwt_identity()
+
     sort_by = request.args.get('sort', 'newest')
     skills = request.args.getlist('skills')
     difficulty = request.args.getlist('difficulty')
@@ -134,19 +137,56 @@ def get_all_projects():
             {'required_skills': {'$regex': search, '$options': 'i'}},
         ]
 
+    # Default sort at the DB level for non-star sorts; star-based sorts are
+    # resolved after we attach real counts from db.stars below.
     sort_map = {
         'newest': [('created_at', -1)],
         'oldest': [('created_at', 1)],
-        'popular': [('stars', -1)],
         'members': [('members_count', -1)],
-        'starred': [('stars', -1)],
     }
-    sort_order = sort_map.get(sort_by, [('created_at', -1)])
+    db_sort = sort_map.get(sort_by)
 
-    projects = list(db.projects.find(query).sort(sort_order))
+    if db_sort:
+        projects = list(db.projects.find(query).sort(db_sort))
+    else:
+        projects = list(db.projects.find(query))
+
+    project_ids = [p["_id"] for p in projects]
+
+    # ── Real star counts from db.stars (not the stale project.stars field) ──
+    star_counts = {}
+    for doc in db.stars.aggregate([
+        {"$match": {"project_id": {"$in": project_ids}}},
+        {"$group": {"_id": "$project_id", "count": {"$sum": 1}}}
+    ]):
+        star_counts[str(doc["_id"])] = doc["count"]
+
+    my_starred_ids = set()
+    my_pending_ids = set()
+    if current_user:
+        my_starred_ids = {
+            str(s["project_id"]) for s in db.stars.find(
+                {"github_id": current_user, "project_id": {"$in": project_ids}}
+            )
+        }
+        my_pending_ids = {
+            str(r["project_id"]) for r in db.join_requests.find(
+                {"github_id": current_user, "status": "pending", "project_id": {"$in": project_ids}}
+            )
+        }
+
     for project in projects:
-        project['_id'] = str(project['_id'])
+        pid = str(project['_id'])
+        project['_id'] = pid
         project['members_count'] = len(project.get('members', []))
+        project['stars'] = star_counts.get(pid, 0)
+        project['is_starred'] = pid in my_starred_ids
+        project['has_pending_request'] = pid in my_pending_ids
+
+    # ── Sort by real star count for popular/starred (can't be done in the DB query) ──
+    if sort_by in ('popular', 'starred'):
+        projects.sort(key=lambda p: p['stars'], reverse=True)
+
     return jsonify(projects)
 
 
@@ -373,9 +413,8 @@ def get_project_pulls(project_id):
 
 @projects_bp.route('/trending', methods=['GET'])
 def get_trending_projects():
-    now = datetime.now(timezone.utc)
-    week_ago = now.replace(tzinfo=timezone.utc)
     from datetime import timedelta
+    now = datetime.now(timezone.utc)
     week_ago = now - timedelta(days=7)
 
     recent_activities = list(db.activities.find({"created_at": {"$gte": week_ago}}))
@@ -395,23 +434,35 @@ def get_trending_projects():
         join_counts[pid] = join_counts.get(pid, 0) + 1
 
     all_projects = list(db.projects.find({}))
+    project_ids = [p["_id"] for p in all_projects]
+
+    # ── Real star counts from db.stars ──
+    star_counts = {}
+    for doc in db.stars.aggregate([
+        {"$match": {"project_id": {"$in": project_ids}}},
+        {"$group": {"_id": "$project_id", "count": {"$sum": 1}}}
+    ]):
+        star_counts[str(doc["_id"])] = doc["count"]
+
     scored = []
     for p in all_projects:
         pid = str(p['_id'])
-        score = (p.get('stars', 0) * 2) + (join_counts.get(pid, 0) * 3) + activity_counts.get(pid, 0)
-        scored.append((score, p))
+        real_stars = star_counts.get(pid, 0)
+        score = (real_stars * 2) + (join_counts.get(pid, 0) * 3) + activity_counts.get(pid, 0)
+        scored.append((score, real_stars, p))
 
     scored.sort(key=lambda x: x[0], reverse=True)
     trending = []
-    for score, p in scored[:3]:
+    for score, real_stars, p in scored[:3]:
         trending.append({
             "_id": str(p["_id"]),
             "title": p.get("title"),
             "required_skills": p.get("required_skills", []),
-            "stars": p.get("stars", 0),
+            "stars": real_stars,
             "trend_score": score,
         })
     return jsonify(trending)
+
 
 
 # DANGER ⚠️ (EDIT BELOW ROUTE AT YOUR OWN RISK)
@@ -535,7 +586,7 @@ def get_recent_activity():
                 ts = ts.replace(tzinfo=timezone.utc)
             e["timestamp"] = ts.isoformat()
 
-    return jsonify(events[:10])
+    return jsonify(events[:20])
 
 
 @projects_bp.route('/<project_id>/star', methods=['PUT'])
