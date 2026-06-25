@@ -2049,6 +2049,45 @@
   cursor: pointer;
 }
 
+.edit-section-btn {
+  display: flex;
+  align-self: flex-end;
+  align-items: center;
+  padding: 4px 18px;
+  color: #797979;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid #e5e7eb;
+  gap:6px;
+}
+.edit-section-btn:hover{
+    color: #000000;
+    background: linear-gradient(135deg,#dfe2ff,#fff);
+}
+
+.edit-section-btns {
+  display: flex;
+  align-self: flex-start;
+  align-items: center;
+  padding: 6px 18px;
+  color: #393939;
+  background: linear-gradient(135deg,#d7ecff,#affffa9d);
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid #e5e7eb;
+  gap:6px;
+}
+.edit-section-btns:hover{
+    color: #000000;
+}
+
+
 .settings-member-row {
   display: flex;
   align-items: center;
