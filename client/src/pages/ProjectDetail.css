@@ -2134,3 +2134,41 @@
   font-weight: 600;
   cursor: pointer;
 }
+
+.pulls-div {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0px 5px;
+}
+
+.pull-row {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 14px 16px;
+  background: #ffffff48;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.pull-row:hover {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  border-color: #d8d2ff;
+}
+
+.pull-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.pull-number {
+  font-family: monospace;
+  font-weight: 600;
+}
+
+.pulls-empty {
+  text-align: center;
+  border: 1px dashed #e5e7eb;
+  border-radius: 10px;
+  background: #fafafa;
+}
