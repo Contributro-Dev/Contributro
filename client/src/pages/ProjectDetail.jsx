@@ -45,6 +45,10 @@ function ProjectDetail() {
   const [pulls, setPulls] = useState([]);
   const [pullsLoading, setPullsLoading] = useState(false);
 
+  const [editingAbout, setEditingAbout] = useState(false);
+  const [aboutForm, setAboutForm] = useState(null);
+  const [aboutSaving, setAboutSaving] = useState(false);
+
   const { id } = useParams()
 
   // Load project
@@ -211,6 +215,50 @@ function ProjectDetail() {
       })
       .catch(err => console.error(err))
   }
+
+  const startEditAbout = () => {
+    setAboutForm({
+      about: project.about || "",
+      goal: project.goal || "",
+      current_status_label: project.current_status_label || "",
+      current_status_text: project.current_status_text || "",
+      key_features: project.key_features?.length ? [...project.key_features] : [""],
+      contributors_needed: project.contributors_needed?.length ? [...project.contributors_needed] : [""],
+    });
+    setEditingAbout(true);
+  };
+
+  const updateListField = (field, index, value) => {
+    setAboutForm(prev => {
+      const list = [...prev[field]];
+      list[index] = value;
+      return { ...prev, [field]: list };
+    });
+  };
+
+  const addListItem = (field) => {
+    setAboutForm(prev => ({ ...prev, [field]: [...prev[field], ""] }));
+  };
+
+  const removeListItem = (field, index) => {
+    setAboutForm(prev => ({ ...prev, [field]: prev[field].filter((_, i) => i !== index) }));
+  };
+
+  const handleSaveAbout = () => {
+    setAboutSaving(true);
+    const payload = {
+      ...aboutForm,
+      key_features: aboutForm.key_features.map(s => s.trim()).filter(Boolean),
+      contributors_needed: aboutForm.contributors_needed.map(s => s.trim()).filter(Boolean),
+    };
+    updateProject(id, payload, token).then(() => getProject(id, token)).then(res => {
+      setProject(res.data);
+      setEditingAbout(false);
+    }).catch(err => {
+      console.error(err);
+      alert(err.response?.data?.error || "Failed to update");
+    }).finally(() => setAboutSaving(false));
+  };
 
   const firstLetter = user?.username?.charAt(0).toUpperCase() || "U";
 
@@ -589,7 +637,7 @@ function ProjectDetail() {
               {activeTab === "overview" && (
                 <div className="overview-div">
                   {/* Members Stats */}
-                  {isMember && isOwner &&
+                  {(isMember || isOwner) &&
                     (
                       <div className='stats-div'>
                         <div className="stat-card-1">
@@ -662,114 +710,171 @@ function ProjectDetail() {
                   <div className="bottom-overview">
 
                     <div className="about-div">
-
-                      <div className="about-section">
-                        <div className="about-header">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-                            <polyline points="14 2 14 8 20 8" />
-                            <line x1="16" y1="13" x2="8" y2="13" />
-                            <line x1="16" y1="17" x2="8" y2="17" />
-                            <line x1="10" y1="9" x2="8" y2="9" />
+                      {isOwner && !editingAbout && (
+                        <button className="edit-section-btn" onClick={startEditAbout}>
+                          Edit Section
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                           </svg>
-                          <span className="about-title">About this project</span>
-                        </div>
-                        <div className="about-desc">
-                          <span>An end-to-end Machine Learning project that predicts student academic outcomes based on various factors such as attendance, study hours, previous grades, and demographic information.</span>
-                        </div>
-                      </div>
+                        </button>
+                      )}
 
-                      <div className="goal-section">
-                        <div className="goal-header">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e9660e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <circle cx="12" cy="12" r="10" />
-                            <circle cx="12" cy="12" r="6" />
-                            <circle cx="12" cy="12" r="2" />
-                          </svg>
+                      {editingAbout ? (
+                        <div className="settings-form">
+                          <label className="settings-label">
+                            About this project
+                            <textarea className="settings-textarea" value={aboutForm.about}
+                              onChange={e => setAboutForm(p => ({ ...p, about: e.target.value }))} />
+                          </label>
 
-                          <span className="goal-title">Goal</span>
-                        </div>
-                        <div className="goal-desc">
-                          <span>Help educational institutions identify students who may need additional support and improve academic outcomes through data-driven insights.</span>
-                        </div>
-                      </div>
+                          <label className="settings-label">
+                            Goal
+                            <textarea className="settings-textarea" value={aboutForm.goal}
+                              onChange={e => setAboutForm(p => ({ ...p, goal: e.target.value }))} />
+                          </label>
 
-                      <div className="current-section">
-                        <div className="current-header">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="18" y1="20" x2="18" y2="10" />
-                            <line x1="12" y1="20" x2="12" y2="4" />
-                            <line x1="6" y1="20" x2="6" y2="14" />
-                          </svg>
-                          <span className="current-title">Current Status</span>
-                          <div className="badge-current">MVP develpoment</div>
-                        </div>
-                        <div className="current-desc">
-                          <span>We have completed the data collection and model training. Now working on the dashboard and deployment.</span>
-                        </div>
-                      </div>
+                          <label className="settings-label">
+                            Current Status Label (badge)
+                            <input className="settings-input" value={aboutForm.current_status_label}
+                              onChange={e => setAboutForm(p => ({ ...p, current_status_label: e.target.value }))} />
+                          </label>
 
-                      <div className="key-section">
-                        <div className="key-header">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M12 3c0 4.5 4.5 9 9 9-4.5 0-9 4.5-9 9 0-4.5-4.5-9-9-9 4.5 0 9-4.5 9-9z" />
-                          </svg>
+                          <label className="settings-label">
+                            Current Status Description
+                            <textarea className="settings-textarea" value={aboutForm.current_status_text}
+                              onChange={e => setAboutForm(p => ({ ...p, current_status_text: e.target.value }))} />
+                          </label>
 
-                          <span className="key-title">Key Features</span>
-                        </div>
+                          <label className="settings-label">Key Features</label>
+                          {aboutForm.key_features.map((feat, i) => (
+                            <div key={i} style={{ display: "flex", gap: "8px", marginBottom: "6px" }}>
+                              <input className="settings-input" value={feat}
+                                onChange={e => updateListField('key_features', i, e.target.value)} />
+                              <button className="settings-remove-btn" onClick={() => removeListItem('key_features', i)}>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M3 6h18" />
+                                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                                  <line x1="10" y1="11" x2="10" y2="17" />
+                                  <line x1="14" y1="11" x2="14" y2="17" />
+                                </svg>
+                              </button>
+                            </div>
+                          ))}
+                          <button className="edit-section-btns" onClick={() => addListItem('key_features')}>+ Add Feature</button>
 
-                        <div className="bullets-div">
-                          <div className="bullet">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                              <polyline points="22 4 12 14.01 9 11.01" />
-                            </svg>
-                            <span>Data Processing and analysis</span>
-                          </div>
-                          <div className="bullet">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                              <polyline points="22 4 12 14.01 9 11.01" />
-                            </svg>
-                            <span>Predivtive Model for student performance</span>
-                          </div>
-                          <div className="bullet">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                              <polyline points="22 4 12 14.01 9 11.01" />
-                            </svg>
-                            <span>Interactive dashboard for visualization</span>
-                          </div>
-                          <div className="bullet">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                              <polyline points="22 4 12 14.01 9 11.01" />
-                            </svg>
-                            <span>Insight generation and recommendations</span>
+                          <label className="settings-label" style={{ marginTop: "16px" }}>Contributors Needed (roles)</label>
+                          {aboutForm.contributors_needed.map((role, i) => (
+                            <div key={i} style={{ display: "flex", gap: "8px", marginBottom: "6px" }}>
+                              <input className="settings-input" value={role}
+                                onChange={e => updateListField('contributors_needed', i, e.target.value)} />
+                              <button className="settings-remove-btn" onClick={() => removeListItem('contributors_needed', i)}>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M3 6h18" />
+                                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                                  <line x1="10" y1="11" x2="10" y2="17" />
+                                  <line x1="14" y1="11" x2="14" y2="17" />
+                                </svg></button>
+                            </div>
+                          ))}
+                          <button className="edit-section-btns" onClick={() => addListItem('contributors_needed')}>+ Add Role</button>
+
+                          <div style={{ display: "flex", gap: "10px", marginTop: "16px" }}>
+                            <button className="edit-section-btns" onClick={handleSaveAbout} disabled={aboutSaving}>
+                              {aboutSaving ? "Saving..." : "Save"}
+                            </button>
+                            <button className="settings-remove-btn" onClick={() => setEditingAbout(false)}>Cancel</button>
                           </div>
                         </div>
+                      ) : (
+                        <>
+                          <div className="about-section">
+                            <div className="about-header">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                                <polyline points="14 2 14 8 20 8" />
+                                <line x1="16" y1="13" x2="8" y2="13" />
+                                <line x1="16" y1="17" x2="8" y2="17" />
+                                <line x1="10" y1="9" x2="8" y2="9" />
+                              </svg>
+                              <span className="about-title">About this project</span>
+                            </div>
+                            <div className="about-desc">
+                              <span>{project.about || "No description added yet."}</span>
+                            </div>
+                          </div>
 
+                          <div className="goal-section">
+                            <div className="goal-header">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e9660e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <circle cx="12" cy="12" r="10" />
+                                <circle cx="12" cy="12" r="6" />
+                                <circle cx="12" cy="12" r="2" />
+                              </svg>
+                              <span className="goal-title">Goal</span>
+                            </div>
+                            <div className="goal-desc">
+                              <span>{project.goal || "No goal added yet."}</span>
+                            </div>
+                          </div>
 
+                          <div className="current-section">
+                            <div className="current-header">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="18" y1="20" x2="18" y2="10" />
+                                <line x1="12" y1="20" x2="12" y2="4" />
+                                <line x1="6" y1="20" x2="6" y2="14" />
+                              </svg>
+                              <span className="current-title">Current Status</span>
+                              {project.current_status_label && (
+                                <div className="badge-current">{project.current_status_label}</div>
+                              )}
+                            </div>
+                            <div className="current-desc">
+                              <span>{project.current_status_text || "No status update yet."}</span>
+                            </div>
+                          </div>
 
-                      </div>
+                          <div className="key-section">
+                            <div className="key-header">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M12 3c0 4.5 4.5 9 9 9-4.5 0-9 4.5-9 9 0-4.5-4.5-9-9-9 4.5 0 9-4.5 9-9z" />
+                              </svg>
+                              <span className="key-title">Key Features</span>
+                            </div>
+                            <div className="bullets-div">
+                              {project.key_features?.length > 0 ? project.key_features.map((feat, i) => (
+                                <div key={i} className="bullet">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                                    <polyline points="22 4 12 14.01 9 11.01" />
+                                  </svg>
+                                  <span>{feat}</span>
+                                </div>
+                              )) : <span className="text-gray-400">No features listed yet.</span>}
+                            </div>
+                          </div>
 
-                      <div className="need-section">
-                        <div className="need-header">
-                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                            <circle cx="9" cy="7" r="4" />
-                            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                          </svg>
-
-                          <span className="need-title">Contributors Needed</span>
-                        </div>
-                        <div className="need-tags">
-                          <div className="badge-need">Frontend Developer</div>
-                          <div className="badge-need">ML Engineer</div>
-                          <div className="badge-need">UI/UX Designer</div>
-                        </div>
-                      </div>
+                          <div className="need-section">
+                            <div className="need-header">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                              </svg>
+                              <span className="need-title">Contributors Needed</span>
+                            </div>
+                            <div className="need-tags">
+                              {project.contributors_needed?.length > 0 ? project.contributors_needed.map((role, i) => (
+                                <div key={i} className="badge-need">{role}</div>
+                              )) : <span className="text-gray-400">No roles listed yet.</span>}
+                            </div>
+                          </div>
+                        </>
+                      )}
                     </div>
 
                     <div className="project-detail-div">
@@ -1211,11 +1316,16 @@ function ProjectDetail() {
                   </div>
 
                   <div className="coll-profiles">
-                    <div className="profile-1"><span>K</span></div>
-                    <div className="profile-2"><span>I</span></div>
-                    <div className="profile-3"><span>S</span></div>
-                    <div className="profile-4"><span>G</span></div>
-                    <div className="profile-add"><span>+1</span></div>
+                    {project.members_info?.slice(0, 4).map((member, i) => (
+                      <div key={member.github_id} className={`profile-${i + 1}`} title={member.username}>
+                        {member.avatar_url
+                          ? <img src={member.avatar_url} alt={member.username} style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
+                          : <span>{member.username?.charAt(0).toUpperCase()}</span>}
+                      </div>
+                    ))}
+                    {project.members_info?.length > 4 && (
+                      <div className="profile-add"><span>+{project.members_info.length - 4}</span></div>
+                    )}
                   </div>
 
                   <div className="member-container">
@@ -1498,17 +1608,22 @@ function ProjectDetail() {
                     <div className="coll-title">
                       <span>Team Members</span>
                     </div>
-                    <a href="#" className='view-all-link'>
-                      {"View all ->"}
+                    <a href="#" className='view-all-link' onClick={() => setActiveTab("contributors")}>
+                      {"View all in Tab"}
                     </a>
                   </div>
 
                   <div className="coll-profiles">
-                    <div className="profile-1"><span>K</span></div>
-                    <div className="profile-2"><span>I</span></div>
-                    <div className="profile-3"><span>S</span></div>
-                    <div className="profile-4"><span>G</span></div>
-                    <div className="profile-add"><span>+1</span></div>
+                    {project.members_info?.slice(0, 4).map((member, i) => (
+                      <div key={member.github_id} className={`profile-${i + 1}`} title={member.username}>
+                        {member.avatar_url
+                          ? <img src={member.avatar_url} alt={member.username} style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
+                          : <span>{member.username?.charAt(0).toUpperCase()}</span>}
+                      </div>
+                    ))}
+                    {project.members_info?.length > 4 && (
+                      <div className="profile-add"><span>+{project.members_info.length - 4}</span></div>
+                    )}
                   </div>
 
                   <div className="member-container">

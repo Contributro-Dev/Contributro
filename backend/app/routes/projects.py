@@ -198,6 +198,12 @@ def get_project(project_id):
     if not project:
         return jsonify({"error": "Project not found"}), 404
     project['_id'] = str(project['_id'])
+    project.setdefault('about', '')
+    project.setdefault('goal', '')
+    project.setdefault('current_status_label', '')
+    project.setdefault('current_status_text', '')
+    project.setdefault('key_features', [])
+    project.setdefault('contributors_needed', [])
     member_ids = [int(m) for m in project.get('members', [])]
     users = {u["github_id"]: u for u in db.users.find({"github_id": {"$in": member_ids}})}
     project['members_info'] = [
@@ -216,6 +222,7 @@ def get_project(project_id):
     project['has_pending_request'] = bool(current_user and db.join_requests.find_one({
         "project_id": ObjectId(project_id), "github_id": current_user, "status": "pending"
     }))
+    
     return jsonify(project)
 
 
@@ -647,8 +654,10 @@ def update_project(project_id):
         return jsonify({"error": "Unauthorized"}), 403
 
     data = request.get_json()
-    allowed_fields = ['title', 'description', 'required_skills', 'team_size', 'timeline', 'status', 'github_repo']
+    allowed_fields = ['title', 'description', 'required_skills', 'team_size', 'timeline', 'status', 'github_repo','about', 'goal', 'current_status_label', 'current_status_text','key_features', 'contributors_needed']
     update_data = {k: v for k, v in data.items() if k in allowed_fields}
+    
+    
 
     if 'github_repo' in update_data:
         update_data['github_repo_url'] = update_data.pop('github_repo')
