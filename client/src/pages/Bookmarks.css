@@ -67,7 +67,7 @@
 
 .explore-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 24px;
 }
 
@@ -392,6 +392,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  left: 185px;
+  top: -12px;
   width: 32px;
   height: 32px;
   border: none;
