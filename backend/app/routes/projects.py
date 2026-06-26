@@ -5,9 +5,9 @@ from bson import ObjectId
 import requests
 import re
 from flask_jwt_extended import jwt_required, get_jwt_identity, verify_jwt_in_request
+from .task import tasks_bp
 
 projects_bp = Blueprint('projects', __name__)
-
 
 def parse_owner_repo(github_repo_url):
     if not github_repo_url:

@@ -2,6 +2,7 @@ import { useParams } from 'react-router-dom'
 import { useEffect, useContext, useState } from "react";
 import { AuthContext } from "../context/AuthContext.jsx";
 import { getProject, joinProject, leaveProject, getReadme, getCommits, getIssues, getPulls, getJoinRequests, handleJoinRequest, updateProject, deleteProject, removeMember } from "../services/projectServices.js";
+import { getProjectTasks } from "../services/taskServices.js";
 import Sidebar from "../components/Sidebar.jsx";
 import { useNavigate } from 'react-router-dom'
 import "./ProjectDetail.css";
@@ -48,6 +49,9 @@ function ProjectDetail() {
   const [editingAbout, setEditingAbout] = useState(false);
   const [aboutForm, setAboutForm] = useState(null);
   const [aboutSaving, setAboutSaving] = useState(false);
+
+  const [tasks, setTasks] = useState([]);
+  const [tasksLoading, setTasksLoading] = useState(false);
 
   const { id } = useParams()
 
@@ -124,20 +128,29 @@ function ProjectDetail() {
       .finally(() => setIssuesLoading(false))
   }, [activeTab, id, token])
 
-  // Load pull requests when Pull Request tab is opened
+  // Load pull requests once project is available (used in overview "Open PRs" stat + pull-request tab)
   useEffect(() => {
-    if (activeTab !== "pull-request") return
+    if (!project) return
     setPullsLoading(true)
     getPulls(id, token)
       .then(res => setPulls(res.data.pulls || []))
       .catch(err => console.error(err))
       .finally(() => setPullsLoading(false))
-  }, [activeTab, id, token])
+  }, [project, id, token])
 
 
   useEffect(() => {
     if (project) setIsPending(project.has_pending_request || false);
   }, [project]);
+
+  useEffect(() => {
+    if (!project) return
+    setTasksLoading(true)
+    getProjectTasks(id, token)
+      .then(res => setTasks(res.data || []))
+      .catch(err => console.error(err))
+      .finally(() => setTasksLoading(false))
+  }, [project, id, token])
 
   const handelJoin = (() => {
     joinProject(id, token).then(() => {
@@ -272,6 +285,8 @@ function ProjectDetail() {
     window.open(`https://github.com/${owner}/${repo}/compare`, "_blank");
   };
 
+
+
   const firstLetter = user?.username?.charAt(0).toUpperCase() || "U";
 
 
@@ -301,19 +316,83 @@ function ProjectDetail() {
     0
   );
 
-  const segments2 = [
-    { value: 60, color: "#10B981" }, // Skills
-    { value: 20, color: "#f6d25c" }, // Activity
-    { value: 10, color: "#3B82F6" }, // Compatibility
-    { value: 10, color: "#df6a21" },
-  ];
-
-  const percentage2 = segments2.reduce(
-    (sum, segment) => sum + segment.value,
-    0
-  );
 
 
+  // tasks right section
+  const visibleTasks = isOwner
+    ? tasks
+    : tasks.filter(t => String(t.assignee_github_id) === String(user.github_id))
+
+  const upcomingTasks = visibleTasks
+    .filter(t => t.status !== "done")
+    .slice(0, 3)
+
+
+  const progressSectionTitle = isOwner ? "Team Contribution Progress" : "Your Contribution Progress"
+  const progressDonutCaption = isOwner ? "Team Progress" : "Overall Progress"
+
+  const STATUS_LABEL = {
+    to_do: "To-Do",
+    in_progress: "In Progress",
+    in_review: "In Review",
+    done: "Done",
+  }
+
+  const STATUS_CLASS = {
+    to_do: "to-do-tag",
+    in_progress: "inpro-tag",
+    in_review: "inpro-tag",
+    done: "to-do-tag",
+  }
+
+  const totalAssignedTasks = visibleTasks.length
+  const activeTasks = visibleTasks.filter(t => t.status !== "done").length
+  const completedTasks = visibleTasks.filter(t => t.status === "done").length
+
+
+  const statusCounts = visibleTasks.reduce((acc, t) => {
+    acc[t.status] = (acc[t.status] || 0) + 1
+    return acc
+  }, {})
+
+  const contributionPercent = totalAssignedTasks > 0
+    ? Math.round(((statusCounts.done || 0) / totalAssignedTasks) * 100)
+    : 0
+
+  const STATUS_SEGMENT_COLOR = {
+    done: "#10B981",
+    in_review: "#3B82F6",
+    in_progress: "#f6d25c",
+    to_do: "#df6a21",
+  }
+
+  const STATUS_SEGMENT_LABEL = {
+    done: "Done",
+    in_review: "In Review",
+    in_progress: "In Progress",
+    to_do: "To-Do",
+  }
+
+  const segments2 = totalAssignedTasks > 0
+    ? Object.entries(statusCounts)
+      .filter(([, count]) => count > 0)
+      .map(([status, count]) => ({
+        value: Math.round((count / totalAssignedTasks) * 100),
+        color: STATUS_SEGMENT_COLOR[status] || "#9ca3af",
+        status,
+      }))
+    : [{ value: 100, color: "rgba(255,255,255,0.12)", status: "none" }]
+
+  const percentage2 = contributionPercent
+
+  const getMotivationMessage = (percent, total, owner) => {
+    if (total === 0) return owner ? "No tasks created yet — assign some to get moving!" : "No tasks assigned yet — check back soon!"
+    if (percent === 100) return owner ? "Team cleared every task — great work all around! 🎉" : "All done — amazing work! 🎉"
+    if (percent >= 75) return owner ? "Team is almost through the board, keep it up!" : "Almost there, keep it up!"
+    if (percent >= 40) return owner ? "Solid team progress, keep the momentum!" : "Good progress, keep going!"
+    if (percent > 0) return owner ? "Team's gotten started — keep pushing!" : "You've started — keep the momentum!"
+    return owner ? "Let's get the team moving on these tasks!" : "Let's get started on your tasks!"
+  }
 
 
   return (
@@ -420,8 +499,6 @@ function ProjectDetail() {
                       </svg>
                       <span className="card-star-count">0</span>
                     </div>
-
-                    <span className="match-badge">98% match</span>
 
                     <div className="member-container">
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#10B981" strokeWidth="2">
@@ -655,53 +732,43 @@ function ProjectDetail() {
                         <div className="stat-card-1">
                           <div className="stat-icon-1">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#24aafd" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                              <circle cx="9" cy="7" r="4" />
-                              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                              <line x1="16" y1="2" x2="16" y2="6" />
+                              <line x1="8" y1="2" x2="8" y2="6" />
+                              <line x1="3" y1="10" x2="21" y2="10" />
+                              <line x1="8" y1="14" x2="8.01" y2="14" strokeWidth="2.5" />
+                              <line x1="12" y1="14" x2="12.01" y2="14" strokeWidth="2.5" />
+                              <line x1="16" y1="14" x2="16.01" y2="14" strokeWidth="2.5" />
                             </svg>
-
                           </div>
                           <div className="stat-info">
-                            <span className="stat-number">4</span>
-                            <span className="stat-label">Assigned Issues</span>
-                            <span className="stat-sublabel">3 active</span>
+                            <span className="stat-number">{totalAssignedTasks}</span>
+                            <span className="stat-label">Assigned Tasks</span>
+                            <span className="stat-sublabel">{activeTasks} active</span>
                           </div>
                         </div>
                         <div className="stat-card-2">
                           <div className="stat-icon-2">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none">
                               <rect width="64" height="64" rx="16" />
-
                               <circle cx="32" cy="32" r="16" stroke="#148c28" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-
                               <path d="M24 32L29.5 37.5L40 26.5" stroke="#1e8c14" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
-
-
                           </div>
                           <div className="stat-info">
-                            <span className="stat-number">2</span>
+                            <span className="stat-number">{completedTasks}</span>
                             <span className="stat-label">Task completed</span>
-                            <span className="stat-sublabel">Great job!</span>
+                            <span className="stat-sublabel">{completedTasks > 0 ? "Great job!" : "Get started!"}</span>
                           </div>
                         </div>
                         <div className="stat-card-3">
                           <div className="stat-icon-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#ff8e42" strokeWidth="2" strokeLinecap="round" strokeLlinejoin="round">
-                              <circle cx="18" cy="6" r="3" />
-                              <circle cx="6" cy="6" r="3" />
-                              <circle cx="6" cy="18" r="3" />
-                              <line x1="6" y1="9" x2="6" y2="15" />
-                              <path d="M9 18h3a4 4 0 0 0 4-4V9" />
-                            </svg>
-
-
+                            <svg xmlns="http://www.w3.org/2000/svg" width={20} height={20} viewBox="0 0 640 640"><path d="M392 88C392 78.3 386.2 69.5 377.2 65.8C368.2 62.1 357.9 64.2 351 71L295 127C285.6 136.4 285.6 151.6 295 160.9L351 216.9C357.9 223.8 368.2 225.8 377.2 222.1C386.2 218.4 392 209.7 392 200L392 176L416 176C433.7 176 448 190.3 448 208L448 422.7C419.7 435 400 463.2 400 496C400 540.2 435.8 576 480 576C524.2 576 560 540.2 560 496C560 463.2 540.3 435 512 422.7L512 208C512 155 469 112 416 112L392 112L392 88zM136 144C136 130.7 146.7 120 160 120C173.3 120 184 130.7 184 144C184 157.3 173.3 168 160 168C146.7 168 136 157.3 136 144zM192 217.3C220.3 205 240 176.8 240 144C240 99.8 204.2 64 160 64C115.8 64 80 99.8 80 144C80 176.8 99.7 205 128 217.3L128 422.6C99.7 434.9 80 463.1 80 495.9C80 540.1 115.8 575.9 160 575.9C204.2 575.9 240 540.1 240 495.9C240 463.1 220.3 434.9 192 422.6L192 217.3zM136 496C136 482.7 146.7 472 160 472C173.3 472 184 482.7 184 496C184 509.3 173.3 520 160 520C146.7 520 136 509.3 136 496zM480 472C493.3 472 504 482.7 504 496C504 509.3 493.3 520 480 520C466.7 520 456 509.3 456 496C456 482.7 466.7 472 480 472z" /></svg>
                           </div>
                           <div className="stat-info">
-                            <span className="stat-number">1</span>
+                            <span className="stat-number">{pullsLoading ? "…" : pulls.length}</span>
                             <span className="stat-label">Open PRs</span>
-                            <span className="stat-sublabel">Awaiting review</span>
+                            <span className="stat-sublabel">{pulls.length > 0 ? "Awaiting review" : "No open PR"}</span>
                           </div>
                         </div>
                         <div className="stat-card-4">
@@ -1304,6 +1371,7 @@ function ProjectDetail() {
           </div>
 
           {/* Right side bar */}
+
           {/* before join */}
           {!isMember && !isOwner &&
             (
@@ -1615,47 +1683,10 @@ function ProjectDetail() {
             (
               <div className="right-content">
 
-                <div className="team-member-div">
-                  <div className="hader-coll">
-                    <div className="coll-title">
-                      <span>Team Members</span>
-                    </div>
-                    <a href="#" className='view-all-link' onClick={() => setActiveTab("contributors")}>
-                      {"View all in Tab"}
-                    </a>
-                  </div>
-
-                  <div className="coll-profiles">
-                    {project.members_info?.slice(0, 4).map((member, i) => (
-                      <div key={member.github_id} className={`profile-${i + 1}`} title={member.username}>
-                        {member.avatar_url
-                          ? <img src={member.avatar_url} alt={member.username} style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
-                          : <span>{member.username?.charAt(0).toUpperCase()}</span>}
-                      </div>
-                    ))}
-                    {project.members_info?.length > 4 && (
-                      <div className="profile-add"><span>+{project.members_info.length - 4}</span></div>
-                    )}
-                  </div>
-
-                  <div className="member-container">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#909392" strokeWidth="2">
-                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                      <circle cx="9" cy="7" r="4" />
-                      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                    </svg>
-                    <span className="member-number">
-                      {project.members?.length || 0}/{project.team_size || '?'}
-                      <span className='ml-1 text-gray-400'>Contributors</span>
-                    </span>
-                  </div>
-                </div>
-
                 <div className="your-contri-div">
                   <div className="hader-match">
                     <div className="progress-title">
-                      <span>Your Contribution Progress</span>
+                      <span>{progressSectionTitle}</span>
                     </div>
                   </div>
                   <div className="main-match">
@@ -1706,34 +1737,26 @@ function ProjectDetail() {
                       </svg>
 
                       <div className="chart-content">
-                        <h2>60%</h2>
-                        <p>Overall Progress</p>
+                        <h2>{percentage2}%</h2>
+                        <p>{progressDonutCaption}</p>
                       </div>
                     </div>
                     <div className="match-scale">
-                      <div className="segment-1 mt-10 flex items-center">
-                        <div className="dot-1 w-2 h-2 rounded-full bg-[#10B981]"></div>
-                        <span className='ml-2 text-[10px]'>Task Done</span>
-                      </div>
-                      <div className="segment-2 flex items-center">
-                        <div className="dot-2  w-2 h-2 rounded-full bg-[#f6d25c]"></div>
-                        <span className='ml-2 text-[10px]'>Reviews Done</span>
-                      </div>
-                      <div className="segment-3 flex items-center">
-                        <div className="dot-3  w-2 h-2 rounded-full bg-[#3B82F6]"></div>
-                        <span className='ml-2 text-[10px]'>PRs Merged</span>
-                      </div>
-                      <div className="segment-3 flex items-center">
-                        <div className="dot-3  w-2 h-2 rounded-full bg-[#df6a21]"></div>
-                        <span className='ml-2 text-[10px]'>Issues Completed</span>
-                      </div>
+                      {segments2.filter(s => s.status !== "none").map(s => (
+                        <div key={s.status} className="segment-1 flex items-center " style={{ marginTop: "5px" }}>
+                          <div className="dot-1 w-2 h-2 rounded-full" style={{ background: s.color }}></div>
+                          <span className='ml-2 text-[10px]'>
+                            {STATUS_SEGMENT_LABEL[s.status]} ({statusCounts[s.status]})
+                          </span>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                  <button className="view-detail-div">
-                    <span className="view-all-link">
-                      {"View Detailed Progress ->"}
+                  <div className="view-detail-div" style={{ cursor: "default" }}>
+                    <span className="text-[10px] text-purple-800">
+                      {getMotivationMessage(contributionPercent, totalAssignedTasks, isOwner)}
                     </span>
-                  </button>
+                  </div>
                 </div>
 
                 <div className="upcoming-task-div">
@@ -1741,99 +1764,86 @@ function ProjectDetail() {
                     <div className="task-title">
                       <span>Upcoming Tasks</span>
                     </div>
-                    <a href="#" className='view-all-link'>
-                      {"View all ->"}
-                    </a>
                   </div>
                   <div className="header-main">
-                    {/* row-1 */}
-                    <div className="row">
-                      <div className="left-row">
-                        <div className="no-div">
-                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#2D3748" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-
-                            <line x1="16" y1="2" x2="16" y2="6" />
-                            <line x1="8" y1="2" x2="8" y2="6" />
-
-                            <line x1="3" y1="10" x2="21" y2="10" />
-
-                            <line x1="8" y1="14" x2="8.01" y2="14" strokeWidth="2.5" />
-                            <line x1="12" y1="14" x2="12.01" y2="14" strokeWidth="2.5" />
-                            <line x1="16" y1="14" x2="16.01" y2="14" strokeWidth="2.5" />
-                            <line x1="8" y1="18" x2="8.01" y2="18" strokeWidth="2.5" />
-                            <line x1="12" y1="18" x2="12.01" y2="18" strokeWidth="2.5" />
-                            <line x1="16" y1="18" x2="16.01" y2="18" strokeWidth="2.5" />
-                          </svg>
-                          <span className="no">#48</span>
+                    {tasksLoading && <div className="commits-empty">Loading tasks...</div>}
+                    {!tasksLoading && upcomingTasks.length === 0 && (
+                      <div className="commits-empty">No upcoming tasks.</div>
+                    )}
+                    {!tasksLoading && upcomingTasks.map(task => (
+                      <div className="row" key={task._id}>
+                        <div className="left-row">
+                          <div className="no-div">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#2D3748" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                              <line x1="16" y1="2" x2="16" y2="6" />
+                              <line x1="8" y1="2" x2="8" y2="6" />
+                              <line x1="3" y1="10" x2="21" y2="10" />
+                              <line x1="8" y1="14" x2="8.01" y2="14" strokeWidth="2.5" />
+                              <line x1="12" y1="14" x2="12.01" y2="14" strokeWidth="2.5" />
+                              <line x1="16" y1="14" x2="16.01" y2="14" strokeWidth="2.5" />
+                              <line x1="8" y1="18" x2="8.01" y2="18" strokeWidth="2.5" />
+                              <line x1="12" y1="18" x2="12.01" y2="18" strokeWidth="2.5" />
+                              <line x1="16" y1="18" x2="16.01" y2="18" strokeWidth="2.5" />
+                            </svg>
+                            <span className="no">#{task._id.slice(-4)}</span>
+                          </div>
+                          <div className="task-info">{task.title}</div>
                         </div>
-                        <div className="task-info">Add data export functionality</div>
-                      </div>
-                      <div className="right-row">
-                        <div className="inpro-tag">In Progress</div>
-                      </div>
-                    </div>
-                    {/* row-2 */}
-                    <div className="row">
-                      <div className="left-row">
-                        <div className="no-div">
-                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#2D3748" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-
-                            <line x1="16" y1="2" x2="16" y2="6" />
-                            <line x1="8" y1="2" x2="8" y2="6" />
-
-                            <line x1="3" y1="10" x2="21" y2="10" />
-
-                            <line x1="8" y1="14" x2="8.01" y2="14" strokeWidth="2.5" />
-                            <line x1="12" y1="14" x2="12.01" y2="14" strokeWidth="2.5" />
-                            <line x1="16" y1="14" x2="16.01" y2="14" strokeWidth="2.5" />
-                            <line x1="8" y1="18" x2="8.01" y2="18" strokeWidth="2.5" />
-                            <line x1="12" y1="18" x2="12.01" y2="18" strokeWidth="2.5" />
-                            <line x1="16" y1="18" x2="16.01" y2="18" strokeWidth="2.5" />
-                          </svg>
-                          <span className="no">#48</span>
+                        <div className="right-row">
+                          <div className={STATUS_CLASS[task.status] || "to-do-tag"}>
+                            {STATUS_LABEL[task.status] || task.status}
+                          </div>
                         </div>
-                        <div className="task-info">Improve model accuracy</div>
                       </div>
-                      <div className="right-row">
-                        <div className="to-do-tag">To-Do</div>
-                      </div>
-                    </div>
-                    {/* row-3 */}
-                    <div className="row">
-                      <div className="left-row">
-                        <div className="no-div">
-                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#2D3748" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-
-                            <line x1="16" y1="2" x2="16" y2="6" />
-                            <line x1="8" y1="2" x2="8" y2="6" />
-
-                            <line x1="3" y1="10" x2="21" y2="10" />
-
-                            <line x1="8" y1="14" x2="8.01" y2="14" strokeWidth="2.5" />
-                            <line x1="12" y1="14" x2="12.01" y2="14" strokeWidth="2.5" />
-                            <line x1="16" y1="14" x2="16.01" y2="14" strokeWidth="2.5" />
-                            <line x1="8" y1="18" x2="8.01" y2="18" strokeWidth="2.5" />
-                            <line x1="12" y1="18" x2="12.01" y2="18" strokeWidth="2.5" />
-                            <line x1="16" y1="18" x2="16.01" y2="18" strokeWidth="2.5" />
-                          </svg>
-                          <span className="no">#48</span>
-                        </div>
-                        <div className="task-info">UI:Student performance insight</div>
-                      </div>
-                      <div className="right-row">
-                        <div className="to-do-tag">To-Do</div>
-                      </div>
-                    </div>
+                    ))}
                   </div>
-                  <button className="view-detail-div">
+                  <button className="view-detail-div" onClick={() => navigate(`/projects/${id}/tasks`)}>
                     <span className="view-all-link">
-                      {"View Detailed Progress ->"}
+                      {"View Your Tasks ->"}
                     </span>
                   </button>
                 </div>
+
+                <div className="team-member-div">
+                  <div className="hader-coll">
+                    <div className="coll-title">
+                      <span>Team Members</span>
+                    </div>
+                    <a href="#" className='view-all-link' onClick={() => setActiveTab("contributors")}>
+                      {"View all in Tab"}
+                    </a>
+                  </div>
+
+                  <div className="coll-profiles">
+                    {project.members_info?.slice(0, 4).map((member, i) => (
+                      <div key={member.github_id} className={`profile-${i + 1}`} title={member.username}>
+                        {member.avatar_url
+                          ? <img src={member.avatar_url} alt={member.username} style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
+                          : <span>{member.username?.charAt(0).toUpperCase()}</span>}
+                      </div>
+                    ))}
+                    {project.members_info?.length > 4 && (
+                      <div className="profile-add"><span>+{project.members_info.length - 4}</span></div>
+                    )}
+                  </div>
+
+
+
+                  <div className="member-container">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#909392" strokeWidth="2">
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                      <circle cx="9" cy="7" r="4" />
+                      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg>
+                    <span className="member-number">
+                      {project.members?.length || 0}/{project.team_size || '?'}
+                      <span className='ml-1 text-gray-400'>Contributors</span>
+                    </span>
+                  </div>
+                </div>
+
               </div>
             )
           }
