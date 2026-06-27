@@ -7,6 +7,9 @@ import SkillsPopUp from "../components/SkillsPopUp.jsx";
 import Sidebar from "../components/Sidebar.jsx";
 import "./Dashboard.css";
 import { useNavigate } from "react-router-dom";
+// Dashboard.jsx — add these two lines near the top, with other imports
+import { useTheme } from "../context/ThemeContext.jsx";
+import { FiMoon, FiSun } from "react-icons/fi";
 
 function Dashboard() {
 
@@ -16,6 +19,8 @@ function Dashboard() {
 
   const [projects, setProjects] = useState([]);
   const [recommendedProjects, setRecommendedProjects] = useState([]);
+  // Dashboard.jsx — inside function Dashboard(), alongside other hooks
+  const { theme, toggleTheme } = useTheme();
 
 
   const [showSkillPopup, setShowSkillPopup] = useState(false)
@@ -223,7 +228,8 @@ function Dashboard() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'row', height: '100vh', backgroundColor: '#fff', color: '#000' }}>
+    // Dashboard.jsx — replace the outer wrapping div's inline style
+<div style={{ display: 'flex', flexDirection: 'row', height: '100vh', backgroundColor: 'var(--bg)', color: 'var(--text)' }}>  
 
       <Sidebar activePage="dashboard" />
       {/* Dashboard content */}
@@ -232,44 +238,33 @@ function Dashboard() {
         {/* nav */}
         <div className="dashboard-nav">
           <input type="text" placeholder="Search projects, skills, or users..." className="search-bar" />
-          <div className="nav-right">
-            <button className="theme-toggle">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="4" />
-                <path d="M12 2v2" />
-                <path d="M12 20v2" />
-                <path d="M4.93 4.93l1.41 1.41" />
-                <path d="M17.66 17.66l1.41 1.41" />
-                <path d="M2 12h2" />
-                <path d="M20 12h2" />
-                <path d="M6.34 17.66l-1.41 1.41" />
-                <path d="M19.07 4.93l-1.41 1.41" />
-              </svg>
-            </button>
-            <button className="notifications">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-              </svg>
-
-            </button>
-            <div className="profile-section" onClick={() => setShowProfileMenu(!showProfileMenu)}>
-              <div className="profile-pic">{user?.avatar
-                ? <img src={user.avatar} alt="avatar" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
-                : firstLetter}</div>
-              <span>{user?.name || user?.username || "User"}</span>
-              <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-              {showProfileMenu && (
-                <div className="profile-dropdown" onClick={(e) => e.stopPropagation()}>
-                  <a href="/profile">My Profile</a>
-                  <a href="/settings">Settings</a>
-                  <button className="logout-btn" onClick={logout}>Logout</button>
-                </div>
-              )}
-            </div>
-          </div>
+<div className="nav-right">
+  <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle dark mode">
+    {theme === "dark" ? <FiSun size={18} /> : <FiMoon size={18} />}
+  </button>
+  <button className="notifications">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+    </svg>
+  </button>
+  <div className="profile-section" onClick={() => setShowProfileMenu(!showProfileMenu)}>
+    <div className="profile-pic">{user?.avatar
+      ? <img src={user.avatar} alt="avatar" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
+      : firstLetter}</div>
+    <span>{user?.name || user?.username || "User"}</span>
+    <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+    {showProfileMenu && (
+      <div className="profile-dropdown" onClick={(e) => e.stopPropagation()}>
+        <a href="/profile">My Profile</a>
+        <a href="/settings">Settings</a>
+        <button className="logout-btn" onClick={logout}>Logout</button>
+      </div>
+    )}
+  </div>
+</div>
         </div>
         <div className="dashboard-content">
           {/* left side / center */}
