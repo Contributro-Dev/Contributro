@@ -11,7 +11,7 @@ def create_app():
     app.config.from_object(Config)
 
     # Initialize extensions
-    CORS(app, origins=["http://localhost:5173"])  # React Vite dev server
+    CORS(app, origins=["http://localhost:5173", "http://localhost:5174"])  # React Vite dev server
     init_mongo(app)
     jwt.init_app(app)
 
@@ -22,6 +22,7 @@ def create_app():
     from .routes.recommendations import recommendations_bp
     from .routes.connections import connections_bp
     from .routes.task import tasks_bp
+    from .routes.messages import messages_bp
 
     app.register_blueprint(tasks_bp, url_prefix='/api/tasks')
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
@@ -29,5 +30,6 @@ def create_app():
     app.register_blueprint(projects_bp, url_prefix="/api/projects")
     app.register_blueprint(recommendations_bp, url_prefix="/api/recommendations")
     app.register_blueprint(connections_bp, url_prefix="/api/connections")
+    app.register_blueprint(messages_bp, url_prefix="/api/messages")
 
     return app
