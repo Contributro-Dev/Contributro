@@ -14,6 +14,8 @@ import Requests from "./pages/Requests.jsx";
 import Projects from "./pages/Projects.jsx"
 import Recommendations from "./pages/Recommendations.jsx";
 import ProjectTasks from "./pages/ProjectTasks.jsx";
+import Messages from "./pages/Messages.jsx";
+
 
 function PrivateRoute({ children }) {
   const { token } = useContext(AuthContext);
@@ -38,6 +40,7 @@ export default function App() {
           <Route path="/projects/:id/tasks" element={<ProjectTasks />}/>
           <Route path="/recommendations" element={<Recommendations />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/messages" element={<Messages />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
