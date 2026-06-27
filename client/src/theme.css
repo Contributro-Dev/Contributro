@@ -44,7 +44,6 @@ html, body, #root {
 [class*="card-"] {
   background-color: var(--card) !important;
   border-color: var(--border) !important;
-  box-shadow: 0 2px 12px var(--shadow) !important;
   color: var(--text);
 }
 

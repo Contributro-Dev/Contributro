@@ -338,8 +338,6 @@ function Messages() {
                   </div>
                 </div>
                 <div className="chat-header-actions">
-                  <button className="chat-action-btn"><FiPhone size={17} /></button>
-                  <button className="chat-action-btn"><FiVideo size={17} /></button>
                   <button className="chat-action-btn"><FiInfo size={17} /></button>
                   <button className="chat-action-btn"><FiMoreVertical size={17} /></button>
                 </div>
