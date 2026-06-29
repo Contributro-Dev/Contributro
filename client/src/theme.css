@@ -13,24 +13,30 @@
   --input-bg: #f9fafb;
   --hover: #f3f4f6;
   --sidebar-bg: rgba(255, 255, 255, 0.7);
+  --badge--green: #ecfdf5;
 }
 
 [data-theme="dark"] {
-  --bg: #0f172a;
+  --bg: #070b14;
   --surface: #111827;
   --card: #1f2937;
+  --right-card: #1f2937;
+  --join-card: #222329;
   --text: #f9fafb;
   --text-secondary: #9ca3af;
   --primary: #7c3aed;
   --primary-hover: #8b5cf6;
   --border: rgba(255, 255, 255, 0.08);
-  --shadow: rgba(0, 0, 0, 0.4);
+  --shadow: rgba(81, 4, 4, 0.4);
   --input-bg: #1f2937;
   --hover: #283244;
   --sidebar-bg: rgba(17, 24, 39, 0.7);
+  --badge--green: #27322d;
 }
 
-html, body, #root {
+html,
+body,
+#root {
   background-color: var(--bg);
   color: var(--text);
   transition: background-color 0.2s ease, color 0.2s ease;
@@ -41,9 +47,7 @@ html, body, #root {
 }
 
 /* Generic element overrides used across pages */
-.card,
-[class*="-card"],
-[class*="card-"] {
+.card {
   background-color: var(--card) !important;
   border-color: var(--border) !important;
   color: var(--text);
@@ -62,7 +66,8 @@ textarea::placeholder {
   color: var(--text-secondary) !important;
 }
 
-a, button {
+a,
+button {
   color: inherit;
 }
 

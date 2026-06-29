@@ -3,7 +3,7 @@
 .bookmarks-layout {
   display: flex;
   min-height: 100vh;
-  background-color: #f5f3ff;
+  background-color: var(--bg);
   font-family: 'Inter', sans-serif;
 }
 
@@ -25,10 +25,10 @@
   justify-content: space-between;
   padding: 0 28px;
   height: 64px;
-  background-color: rgba(255, 255, 255, 0.85);
+  background-color:var(--bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid #ede9fe;
+  border-bottom: 1px solid var(--border);
 }
 
 .bookmarks-nav__left {
@@ -40,7 +40,7 @@
 .bookmarks-nav__title {
   font-size: 18px;
   font-weight: 700;
-  color: #111827;
+  color: var(--text);
   letter-spacing: -0.02em;
 }
 
@@ -61,6 +61,8 @@
 .bookmarks-main {
   flex: 1;
   padding: 32px 28px 48px;
+  
+
 }
 
 /* ── Explore Grid (reused) ───────────────────────────────────────────────── */
@@ -86,7 +88,7 @@
 /* ── Explore Card ────────────────────────────────────────────────────────── */
 
 .explore-card {
-  background: #ffffff;
+  background: var(--surface);
   border-radius: 18px;
   overflow: hidden;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
@@ -181,6 +183,7 @@
   margin: 0;
   line-height: 1.6;
   display: -webkit-box;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
@@ -321,8 +324,13 @@
 }
 
 @keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 /* ── Empty state ─────────────────────────────────────────────────────────── */
@@ -398,7 +406,7 @@
   width: 32px;
   height: 32px;
   border: none;
-  background: rgba(255,255,255,0.15);
+  background: rgba(255, 255, 255, 0.15);
   color: #ffffff;
   border-radius: 8px;
   cursor: pointer;
@@ -407,7 +415,7 @@
 }
 
 .bookmark-top-btn:hover {
-  background: rgba(255,255,255,0.28);
+  background: rgba(255, 255, 255, 0.28);
 }
 
 .bookmark-match {

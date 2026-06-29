@@ -294,7 +294,7 @@ function Explore() {
                         </button>
                     )}
                     <button className="bottom-bookmark-btn" onClick={e => toggleBookmark(project._id, e)}>
-                        <svg width="18" height="18" fill={bookmarkedIds.includes(project._id) ? "#6366f1" : "none"} stroke="#1d1d1dd1" strokeWidth="1.3" viewBox="0 0 24 24">
+                        <svg width="18" height="18" fill={bookmarkedIds.includes(project._id) ? "#6366f1" : "none"} stroke="currentColor" strokeWidth="1.3" viewBox="0 0 24 24">
                             <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
                         </svg>
                     </button>

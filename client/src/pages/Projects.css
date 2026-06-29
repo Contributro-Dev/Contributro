@@ -18,9 +18,9 @@
     align-items: center;
     justify-content: space-between;
     padding: 12px 24px;
-    border-bottom: .5px solid #e5e7eb;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    background-color: #ffffffa5;
+    border-bottom: .5px solid var(--border);
+    box-shadow: 0 4px 12px var(--shadow);
+    background-color: var(--surface);
     height: 60px;
     flex-shrink: 0;
 }
@@ -28,14 +28,13 @@
 .search-bar {
     width: 600px;
     padding: 8px 16px;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--border);
     border-radius: 12px;
     font-size: 0.85rem;
-    color: #374151;
+    color: var(--text);
     display: flex;
     gap: 12px;
-    background-color: #f9fafb;
-
+    background-color: var(--input-bg);
 }
 
 .search-bar input {
@@ -206,7 +205,7 @@
     margin-left: 10px;
     font-size: 1.7rem;
     font-weight: 700;
-    color: #111827;
+    color: var(--text);
 }
 
 .projects-msg {
@@ -264,7 +263,7 @@
 }
 
 .projects-stat-card {
-    background: #fff;
+    background: var(--surface);
     border-radius: 12px;
     box-shadow: 0px 2px 12px rgba(0, 0, 0, 0.09);
     padding: 16px;
@@ -336,7 +335,7 @@
 .stat-number {
     font-size: 1.6rem;
     font-weight: 700;
-    color: #111827;
+    color: var(--text);
 }
 
 .stat-label {
@@ -363,14 +362,13 @@
 .search-bar-tab {
     width: 400px;
     padding: 4px 16px;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--border);
     border-radius: 8px;
     font-size: 0.75rem;
     color: #374151;
     display: flex;
     gap: 12px;
-    background-color: #f9fafb;
-
+    background-color: var(--input-bg);
 }
 
 .search-bar-tab input {
@@ -430,7 +428,7 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
-    background: #fff;
+    background: var(--surface);
     border-radius: 12px;
     padding: 16px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
@@ -451,7 +449,7 @@
 .projects-grid-title {
     font-size: 1rem;
     font-weight: 700;
-    color: #111827;
+    color: var(--text);
 }
 
 .projects-grid-count {
@@ -560,11 +558,11 @@
 .right-section {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    background: #fff;
+    gap: 12px;
+    background: var(--right-card);
     border-radius: 12px;
     padding: 14px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 2px 8px var(--shadow);
 }
 
 .right-section-header {
@@ -576,7 +574,7 @@
 .right-section-title {
     font-size: 0.88rem;
     font-weight: 700;
-    color: #111827;
+    color: var(--text);
 }
 
 /* ── JOIN REQUESTS ── */
@@ -586,8 +584,8 @@
     gap: 10px;
     padding: 8px;
     border-radius: 8px;
-    background: #fafafa;
-    border: 1px solid #f3f4f6;
+    background: var(--join-card);
+    border: 1px solid var(--border);
 }
 
 .request-avatar {
@@ -614,7 +612,7 @@
 .request-name {
     font-size: 0.75rem;
     font-weight: 600;
-    color: #111827;
+    color: var(--text);
 }
 
 .request-role {
@@ -700,7 +698,7 @@
 }
 
 .deadline-item:hover {
-    background: #f9fafb;
+    background: var(--join-card);
 }
 
 .deadline-icon {
@@ -724,7 +722,7 @@
 .deadline-name {
     font-size: 0.75rem;
     font-weight: 600;
-    color: #111827;
+    color: var(--text);
 }
 
 .deadline-remaining {

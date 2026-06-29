@@ -7,7 +7,7 @@
   height: 100vh;
   overflow-y: auto;
   margin-left: 60px;
-  background-color: #f8fafc;
+  background-color: var(--bg);
   font-family: 'Inter', system-ui, sans-serif;
 }
 
@@ -19,8 +19,8 @@
   justify-content: space-between;
   gap: 16px;
   padding: 16px 28px;
-  background-color: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
+  background-color: var(--bg);
+  border-bottom: 1px solid var(--border);
 }
 
 .profile-nav .search-bar {
@@ -31,8 +31,8 @@
   max-width: 420px;
   padding: 10px 16px;
   border-radius: 10px;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
+  border: 1px solid var(--border);
+  background: var(--input-bg);
   color: #94a3b8;
 }
 
@@ -166,7 +166,7 @@
 .section-title {
   font-size: 16px;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--text);
   margin: 0 0 16px;
 }
 
@@ -224,7 +224,7 @@
 .profile-name {
   font-size: 21px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text);
   margin: 0;
 }
 
@@ -292,13 +292,13 @@
 }
 
 .btn--outline {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  color: #334155;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
 }
 
 .btn--outline:hover {
-  background: #f8fafc;
+  background: var(--hover);
   transform: translateY(-2px);
 }
 
@@ -314,7 +314,7 @@
 }
 
 .badge--green {
-  background: #ecfdf5;
+  background: var(--badge--green);
   color: #059669;
 }
 
@@ -330,12 +330,12 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #f8fafc;
-  border: 1px solid #f1f5f9;
+  background: va(--surface);
+  border: 1px solid var(--border);
   border-radius: 999px;
   padding: 7px 16px;
   font-size: 13px;
-  color: #334155;
+  color: var(--text);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
@@ -372,6 +372,7 @@
   align-items: center;
   gap: 8px;
   border-radius: 14px;
+  border: 2px dotted var(--border);
   padding: 20px 12px;
   cursor: pointer;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
@@ -420,7 +421,7 @@
 .contribution-stat__value {
   font-size: 22px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text);
 }
 
 .contribution-stat__label {
@@ -530,7 +531,7 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #f8fafc;
+  background: var(--surface);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -540,7 +541,7 @@
 .timeline-line {
   width: 2px;
   flex: 1;
-  background: #f1f5f9;
+  background: var(--bg);
   margin: 2px 0;
 }
 
@@ -578,7 +579,7 @@
 
 .language-item__name {
   font-weight: 500;
-  color: #334155;
+  color: var(--text-secondary);
 }
 
 .language-item__percent {
@@ -624,7 +625,7 @@
 
 .github-stat-row__value {
   font-weight: 600;
-  color: #0f172a;
+  color: var(--text-secondary);
 }
 
 /* ── Right column: achievements ─────────────────────────────────────────── */
