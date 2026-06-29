@@ -6,6 +6,9 @@ import { getRecommendedProjects } from "../services/recommendationServices.js";
 import "./Explore.css";
 import { getAllProjects, joinProject, toggleStar, getTrendingProjects, getRecentActivity } from "../services/projectServices.js";
 import { getTopContributors } from "../services/userService.js";
+import { useTheme } from "../context/ThemeContext.jsx";
+import { FiMoon, FiSun } from "react-icons/fi";
+
 
 function Explore() {
     const cardsRef = useRef(null)
@@ -30,6 +33,7 @@ function Explore() {
     const [bookmarkedIds, setBookmarkedIds] = useState(() => JSON.parse(localStorage.getItem('bookmarks') || '[]'));
     const [scrolled, setScrolled] = useState(false);
     const navigate = useNavigate();
+    const { theme, toggleTheme } = useTheme();
 
     const allSkills = [
         { name: 'React', count: 128 },
@@ -314,10 +318,8 @@ function Explore() {
                         />
                     </div>
                     <div className="nav-right">
-                        <button className="theme-toggle">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-                                <circle cx="12" cy="12" r="4" /><path d="M12 2v2" /><path d="M12 20v2" /><path d="M4.93 4.93l1.41 1.41" /><path d="M17.66 17.66l1.41 1.41" /><path d="M2 12h2" /><path d="M20 12h2" /><path d="M6.34 17.66l-1.41 1.41" /><path d="M19.07 4.93l-1.41 1.41" />
-                            </svg>
+                        <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle dark mode">
+                            {theme === "dark" ? <FiSun size={18} /> : <FiMoon size={18} />}
                         </button>
                         <button className="notifications">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">

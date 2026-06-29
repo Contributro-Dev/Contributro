@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useContext } from "react";
 import { AuthContext } from "./context/AuthContext.jsx";
 import AuthProvider from "./context/AuthContext.jsx";
+import { ThemeProvider } from "./context/ThemeContext.jsx";
+import "./theme.css";
 import Login from "./pages/Login.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Explore from "./pages/Explore.jsx";
@@ -24,25 +26,27 @@ function PrivateRoute({ children }) {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element ={<Login />} />
-          <Route path="/profile/:username" element={<PublicProfile />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/explore" element={<Explore />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path ="/projects" element={<Projects />}/>
-          <Route path="/projects/:id" element={<ProjectDetail />} />
-          <Route path="/create-project" element={<CreateProject />} />
-          <Route path="/bookmarks" element={<Bookmarks />} />
-          <Route path="/requests" element={<Requests />}/>
-          <Route path="/projects/:id/tasks" element={<ProjectTasks />}/>
-          <Route path="/recommendations" element={<Recommendations />} />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/messages" element={<Messages />} />
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/profile/:username" element={<PublicProfile />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/explore" element={<Explore />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/projects" element={<Projects />} />
+            <Route path="/projects/:id" element={<ProjectDetail />} />
+            <Route path="/create-project" element={<CreateProject />} />
+            <Route path="/bookmarks" element={<Bookmarks />} />
+            <Route path="/requests" element={<Requests />} />
+            <Route path="/projects/:id/tasks" element={<ProjectTasks />} />
+            <Route path="/recommendations" element={<Recommendations />} />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/messages" element={<Messages />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

@@ -5,16 +5,16 @@
     flex-direction: column;
     padding: 16px 8px;
     padding-top: 0;
-    background: rgba(255, 255, 255, 0.7);
+    background: var(--sidebar-bg);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(12px);
-    border-right: 1px solid #e5e7eb;
+    border-right: 1px solid var(--border);
     overflow-x: hidden;
     position: fixed;
     top: 0;
     left: 0;
     z-index: 200;
-    transition: width 0.6s ease;
+    transition: width 0.6s ease, background-color 0.2s ease, border-color 0.2s ease;
 }
 
 
@@ -76,7 +76,7 @@
     gap: 8px;
     padding: 10px 12px;
     cursor: pointer;
-    color: #6b7280;
+    color: var(--text-secondary);
     border-radius: 4px;
     align-items: center;
     justify-content: flex-start;
@@ -112,7 +112,7 @@
 
 .create-new {
     margin-top: 140px;
-    border-bottom: 2px dotted #ebe7e5;
+    border-bottom: 2px dotted var(--border);
     padding-bottom: 20px;
 }
 

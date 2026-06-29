@@ -12,6 +12,7 @@
   --shadow: rgba(0, 0, 0, 0.08);
   --input-bg: #f9fafb;
   --hover: #f3f4f6;
+  --sidebar-bg: rgba(255, 255, 255, 0.7);
 }
 
 [data-theme="dark"] {
@@ -26,6 +27,7 @@
   --shadow: rgba(0, 0, 0, 0.4);
   --input-bg: #1f2937;
   --hover: #283244;
+  --sidebar-bg: rgba(17, 24, 39, 0.7);
 }
 
 html, body, #root {

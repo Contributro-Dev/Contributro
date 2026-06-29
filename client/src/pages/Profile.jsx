@@ -23,6 +23,8 @@ import {
   SiPython, SiReact, SiMongodb, SiDocker, SiPandas, SiNumpy, SiTailwindcss,
 } from "react-icons/si";
 import "./Profile.css";
+import { useTheme } from "../context/ThemeContext.jsx";
+import { FiMoon, FiSun } from "react-icons/fi";
 
 const TECH_STACK = [
   { name: "Python", icon: SiPython, color: "#3776AB" },
@@ -53,17 +55,17 @@ const ACHIEVEMENTS = [
 ];
 
 const ACTIVITY_ICON_MAP = {
-  updated_profile:    { icon: FiUser,       color: "#6366f1" },
-  updated_skills:     { icon: FiCode,       color: "#8b5cf6" },
-  updated_bio:        { icon: FiEdit2,      color: "#6366f1" },
-  updated_portfolio:  { icon: FiLink,       color: "#0ea5e9" },
-  changed_status:     { icon: FiActivity,   color: "#f59e0b" },
-  shared_profile:     { icon: FiShare2,     color: "#10b981" },
-  connected_github:   { icon: FiGitCommit,  color: "#1d4ed8" },
-  created_project:    { icon: FiPlusCircle, color: "#8b5cf6" },
-  joined_project:     { icon: FiUserPlus,   color: "#10b981" },
-  bookmarked_project: { icon: FiBookmark,   color: "#f59e0b" },
-  default:            { icon: FiStar,       color: "#6366f1" },
+  updated_profile: { icon: FiUser, color: "#6366f1" },
+  updated_skills: { icon: FiCode, color: "#8b5cf6" },
+  updated_bio: { icon: FiEdit2, color: "#6366f1" },
+  updated_portfolio: { icon: FiLink, color: "#0ea5e9" },
+  changed_status: { icon: FiActivity, color: "#f59e0b" },
+  shared_profile: { icon: FiShare2, color: "#10b981" },
+  connected_github: { icon: FiGitCommit, color: "#1d4ed8" },
+  created_project: { icon: FiPlusCircle, color: "#8b5cf6" },
+  joined_project: { icon: FiUserPlus, color: "#10b981" },
+  bookmarked_project: { icon: FiBookmark, color: "#f59e0b" },
+  default: { icon: FiStar, color: "#6366f1" },
 };
 
 const CURRENT_MONTH = new Date().toLocaleString("default", { month: "long", year: "numeric" });
@@ -119,6 +121,8 @@ export default function Profile() {
   const [editLoading, setEditLoading] = useState(false);
   const [modalInitialData, setModalInitialData] = useState(null);
 
+  const { theme, toggleTheme } = useTheme();
+
 
 
   const [connections, setConnections] = useState([]);
@@ -132,10 +136,10 @@ export default function Profile() {
           setConnections([]);
           return;
         }
-       return getUsersByIds(ids, token).then((res2) => setConnections(res2.data));
-     })
-    .catch((err) => console.error("Failed to load connections:", err));
-}, [token]);
+        return getUsersByIds(ids, token).then((res2) => setConnections(res2.data));
+      })
+      .catch((err) => console.error("Failed to load connections:", err));
+  }, [token]);
 
 
   const showToast = useCallback((message, type = "success") => {
@@ -189,7 +193,7 @@ export default function Profile() {
   const handleSaveProfile = useCallback(async (formData) => {
     setEditLoading(true);
     try {
-      const res = await updateMe(formData ,token);
+      const res = await updateMe(formData, token);
       updateUser(res.data);
       setShowEditModal(false);
       setModalInitialData(null);
@@ -245,14 +249,8 @@ export default function Profile() {
             <input type="text" placeholder="Search projects, skills, or users..." />
           </div>
           <div className="nav-right">
-            <button className="theme-toggle">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="4" />
-                <path d="M12 2v2" /><path d="M12 20v2" />
-                <path d="M4.93 4.93l1.41 1.41" /><path d="M17.66 17.66l1.41 1.41" />
-                <path d="M2 12h2" /><path d="M20 12h2" />
-                <path d="M6.34 17.66l-1.41 1.41" /><path d="M19.07 4.93l-1.41 1.41" />
-              </svg>
+            <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle dark mode">
+              {theme === "dark" ? <FiSun size={18} /> : <FiMoon size={18} />}
             </button>
             <button className="notifications">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
@@ -262,8 +260,8 @@ export default function Profile() {
             </button>
             <div className="profile-section" onClick={() => setShowProfileMenu((p) => !p)}>
               <div className="profile-pic">{user?.avatar
-                    ? <img src={user.avatar} alt="avatar" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
-                    : firstLetter}</div>
+                ? <img src={user.avatar} alt="avatar" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
+                : firstLetter}</div>
               <span>{user?.name || user?.username || "User"}</span>
               <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <polyline points="6 9 12 15 18 9" />
@@ -442,25 +440,25 @@ export default function Profile() {
                 )}
               </div>
             </section>
-          <section className="card">
-  <h3 className="section-title section-title--sm">Connections ({connections.length})</h3>
-  {connections.length === 0 ? (
-    <p className="empty-msg">No connections yet.</p>
-  ) : (
-    <div className="languages-list">
-      {connections.map((c) => (
-        <div key={c.github_id} className="language-item" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <div className="profile-pic" style={{ width: "32px", height: "32px", fontSize: "13px" }}>
-            {c.avatar
-              ? <img src={c.avatar} alt={c.username} style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
-              : (c.username?.charAt(0).toUpperCase() || "U")}
-          </div>
-          <span className="language-item__name">{c.name || c.username}</span>
-        </div>
-      ))}
-    </div>
-  )}
-</section>
+            <section className="card">
+              <h3 className="section-title section-title--sm">Connections ({connections.length})</h3>
+              {connections.length === 0 ? (
+                <p className="empty-msg">No connections yet.</p>
+              ) : (
+                <div className="languages-list">
+                  {connections.map((c) => (
+                    <div key={c.github_id} className="language-item" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      <div className="profile-pic" style={{ width: "32px", height: "32px", fontSize: "13px" }}>
+                        {c.avatar
+                          ? <img src={c.avatar} alt={c.username} style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
+                          : (c.username?.charAt(0).toUpperCase() || "U")}
+                      </div>
+                      <span className="language-item__name">{c.name || c.username}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
 
 
             <section className="card">

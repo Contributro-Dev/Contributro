@@ -6,6 +6,8 @@ import { AuthContext } from "../context/AuthContext.jsx";
 import { getMyJoinRequests, handleJoinRequest } from "../services/projectServices.js";
 import Sidebar from "../components/Sidebar.jsx";
 import "./Requests.css";
+import { useTheme } from "../context/ThemeContext.jsx";
+import { FiMoon, FiSun } from "react-icons/fi";
 
 function Requests() {
   const { user, token, logout } = useContext(AuthContext);
@@ -16,6 +18,8 @@ function Requests() {
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState("pending"); // pending | approved | rejected | all
   const [searchTerm, setSearchTerm] = useState("");
+
+  const { theme, toggleTheme } = useTheme();
 
   // Load all join requests across owned projects
   useEffect(() => {
@@ -53,9 +57,9 @@ function Requests() {
 
   const filteredList =
     activeFilter === "pending" ? pendingRequests :
-    activeFilter === "approved" ? approvedRequests :
-    activeFilter === "rejected" ? rejectedRequests :
-    requests;
+      activeFilter === "approved" ? approvedRequests :
+        activeFilter === "rejected" ? rejectedRequests :
+          requests;
 
   const searchedList = filteredList.filter(req =>
     req.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -95,18 +99,8 @@ function Requests() {
             <input type="text" placeholder="Search projects, skills, technologies..." />
           </div>
           <div className="nav-right">
-            <button className="theme-toggle">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="4" />
-                <path d="M12 2v2" />
-                <path d="M12 20v2" />
-                <path d="M4.93 4.93l1.41 1.41" />
-                <path d="M17.66 17.66l1.41 1.41" />
-                <path d="M2 12h2" />
-                <path d="M20 12h2" />
-                <path d="M6.34 17.66l-1.41 1.41" />
-                <path d="M19.07 4.93l-1.41 1.41" />
-              </svg>
+            <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle dark mode">
+              {theme === "dark" ? <FiSun size={18} /> : <FiMoon size={18} />}
             </button>
             <button className="notifications">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
@@ -116,9 +110,9 @@ function Requests() {
             </button>
             <div className="profile-section" onClick={() => setShowProfileMenu(!showProfileMenu)}>
               <div className="profile-pic">{user?.avatar
-                    ? <img src={user.avatar} alt="avatar" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
-                    : firstLetter}</div>
-              <span>{ user?.name ||user?.username || "User"}</span>
+                ? <img src={user.avatar} alt="avatar" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
+                : firstLetter}</div>
+              <span>{user?.name || user?.username || "User"}</span>
               <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <polyline points="6 9 12 15 18 9" />
               </svg>
@@ -228,8 +222,8 @@ function Requests() {
               <div className="requests-list-header">
                 <span className="requests-list-title">
                   {activeFilter === "pending" ? "Pending Requests" :
-                   activeFilter === "approved" ? "Approved Requests" :
-                   activeFilter === "rejected" ? "Rejected Requests" : "All Requests"}
+                    activeFilter === "approved" ? "Approved Requests" :
+                      activeFilter === "rejected" ? "Rejected Requests" : "All Requests"}
                   {" "}
                   <span className="requests-list-count">{searchedList.length}</span>
                 </span>
