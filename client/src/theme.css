@@ -14,6 +14,7 @@
   --hover: #f3f4f6;
   --sidebar-bg: rgba(255, 255, 255, 0.7);
   --badge--green: #ecfdf5;
+  --create-div:#fbbeffa1;
 }
 
 [data-theme="dark"] {
@@ -32,6 +33,7 @@
   --hover: #283244;
   --sidebar-bg: rgba(17, 24, 39, 0.7);
   --badge--green: #27322d;
+  --create-div:#370a39a1;
 }
 
 html,
