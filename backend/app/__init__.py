@@ -23,7 +23,9 @@ def create_app():
     from .routes.connections import connections_bp
     from .routes.task import tasks_bp
     from .routes.messages import messages_bp
+    from .routes.discussions import discussions_bp
 
+    app.register_blueprint(discussions_bp, url_prefix="/api/discussions")
     app.register_blueprint(tasks_bp, url_prefix='/api/tasks')
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(users_bp, url_prefix="/api/users")

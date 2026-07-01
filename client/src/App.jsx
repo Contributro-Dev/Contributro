@@ -17,6 +17,7 @@ import Projects from "./pages/Projects.jsx"
 import Recommendations from "./pages/Recommendations.jsx";
 import ProjectTasks from "./pages/ProjectTasks.jsx";
 import Messages from "./pages/Messages.jsx";
+import Discussions from "./pages/Discussions.jsx";
 
 
 function PrivateRoute({ children }) {
@@ -44,6 +45,7 @@ export default function App() {
             <Route path="/recommendations" element={<Recommendations />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
             <Route path="/messages" element={<Messages />} />
+            <Route path="/projects/:id/discussions" element={<Discussions />} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>
