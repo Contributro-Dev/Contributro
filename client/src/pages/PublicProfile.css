@@ -1,6 +1,7 @@
 .public-profile-page {
   min-height: 100vh;
-  background: #f8fafc;
+  background: var(--bg);
+  color: var(--text);
 }
 
 .public-profile-topbar {
@@ -8,8 +9,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 14px 32px;
-  background: #fff;
-  border-bottom: 1px solid #f1f5f9;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
   z-index: 100;

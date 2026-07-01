@@ -662,7 +662,7 @@
 .achievement-title {
   font-size: 13px;
   font-weight: 600;
-  color: #1e293b;
+  color: var(--text);
   margin: 0;
 }
 

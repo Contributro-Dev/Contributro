@@ -9,6 +9,7 @@ import {
   getConversationsSummary,
   uploadAttachment,
   markMessagesRead,
+  deleteMessage,
 } from "../services/messageServices.js";
 import EmojiPicker from "emoji-picker-react";
 import {
@@ -33,10 +34,39 @@ function AttachmentIcon({ mime }) {
 
 function TickIcon({ status }) {
   if (status === "seen")
-    return <span className="tick tick-seen">✓✓</span>;
+    return <span className="tick tick-seen">
+      <svg
+        width="20px"
+        height="20px"
+        viewBox="0 -0.5 25 25"
+        fill="#fff"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M5.03033 11.4697C4.73744 11.1768 4.26256 11.1768 3.96967 11.4697C3.67678 11.7626 3.67678 12.2374 3.96967 12.5303L5.03033 11.4697ZM8.5 16L7.96967 16.5303C8.26256 16.8232 8.73744 16.8232 9.03033 16.5303L8.5 16ZM17.0303 8.53033C17.3232 8.23744 17.3232 7.76256 17.0303 7.46967C16.7374 7.17678 16.2626 7.17678 15.9697 7.46967L17.0303 8.53033ZM9.03033 11.4697C8.73744 11.1768 8.26256 11.1768 7.96967 11.4697C7.67678 11.7626 7.67678 12.2374 7.96967 12.5303L9.03033 11.4697ZM12.5 16L11.9697 16.5303C12.2626 16.8232 12.7374 16.8232 13.0303 16.5303L12.5 16ZM21.0303 8.53033C21.3232 8.23744 21.3232 7.76256 21.0303 7.46967C20.7374 7.17678 20.2626 7.17678 19.9697 7.46967L21.0303 8.53033ZM3.96967 12.5303L7.96967 16.5303L9.03033 15.4697L5.03033 11.4697L3.96967 12.5303ZM9.03033 16.5303L17.0303 8.53033L15.9697 7.46967L7.96967 15.4697L9.03033 16.5303ZM7.96967 12.5303L11.9697 16.5303L13.0303 15.4697L9.03033 11.4697L7.96967 12.5303ZM13.0303 16.5303L21.0303 8.53033L19.9697 7.46967L11.9697 15.4697L13.0303 16.5303Z"
+          fill="#fff"
+        />
+      </svg>
+    </span>;
   if (status === "delivered")
-    return <span className="tick tick-delivered">✓✓</span>;
-  return <span className="tick tick-sent">✓</span>;
+    return <span className="tick tick-delivered">
+      <svg
+        width="20px"
+        height="20px"
+        viewBox="0 -0.5 25 25"
+        fill="#fff"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M5.03033 11.4697C4.73744 11.1768 4.26256 11.1768 3.96967 11.4697C3.67678 11.7626 3.67678 12.2374 3.96967 12.5303L5.03033 11.4697ZM8.5 16L7.96967 16.5303C8.26256 16.8232 8.73744 16.8232 9.03033 16.5303L8.5 16ZM17.0303 8.53033C17.3232 8.23744 17.3232 7.76256 17.0303 7.46967C16.7374 7.17678 16.2626 7.17678 15.9697 7.46967L17.0303 8.53033ZM9.03033 11.4697C8.73744 11.1768 8.26256 11.1768 7.96967 11.4697C7.67678 11.7626 7.67678 12.2374 7.96967 12.5303L9.03033 11.4697ZM12.5 16L11.9697 16.5303C12.2626 16.8232 12.7374 16.8232 13.0303 16.5303L12.5 16ZM21.0303 8.53033C21.3232 8.23744 21.3232 7.76256 21.0303 7.46967C20.7374 7.17678 20.2626 7.17678 19.9697 7.46967L21.0303 8.53033ZM3.96967 12.5303L7.96967 16.5303L9.03033 15.4697L5.03033 11.4697L3.96967 12.5303ZM9.03033 16.5303L17.0303 8.53033L15.9697 7.46967L7.96967 15.4697L9.03033 16.5303ZM7.96967 12.5303L11.9697 16.5303L13.0303 15.4697L9.03033 11.4697L7.96967 12.5303ZM13.0303 16.5303L21.0303 8.53033L19.9697 7.46967L11.9697 15.4697L13.0303 16.5303Z"
+          fill="#fff"
+        />
+      </svg>
+    </span>;
+  return <span className="tick tick-sent"><svg width="14px" height="14px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M9 16.2L4.8 12L3.4 13.4L9 19L21 7L19.6 5.6L9 16.2Z" fill="#8696A0" />
+  </svg>
+  </span>;
 }
 
 // ─── component ───────────────────────────────────────────────────────────────
@@ -78,6 +108,10 @@ function Messages() {
   // sending state
   const [sending, setSending] = useState(false);
 
+  // message being forwarded
+  const [forwardMsg, setForwardMsg] = useState(null);
+  const [showForwardModal, setShowForwardModal] = useState(false);
+
   // ── load conversations ──────────────────────────────────────────────────
   useEffect(() => {
     if (!token) return;
@@ -100,9 +134,10 @@ function Messages() {
             time: summaryMap[u.github_id]?.last_time
               ? new Date(summaryMap[u.github_id].last_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
               : "",
+            unread: summaryMap[u.github_id]?.unread_count || 0,
           }));
           setConversations(convos);
-          if (convos.length > 0) setActiveId(convos[0].id);
+
           setLoadingConvos(false);
         });
       })
@@ -116,7 +151,7 @@ function Messages() {
     if (!activeId || !token) return;
     getConversation(activeId, token)
       .then((res) => {
-        setMessages(res.data.map((m) => ({
+        const incoming = res.data.map((m) => ({
           id: m.id || m._id,
           fromMe: String(m.from_id) === String(user?.github_id),
           text: m.text || "",
@@ -124,13 +159,56 @@ function Messages() {
           status: m.status || "sent",
           attachment: m.attachment || null,
           replyTo: m.reply_to || null,
-        })));
-        markMessagesRead(activeId, token).catch(() => {});
+        }));
+
+        setMessages((prev) => {
+          // Only update state if something actually changed (avoids unnecessary re-renders)
+          if (JSON.stringify(prev) === JSON.stringify(incoming)) return prev;
+          return incoming;
+        });
+
+        markMessagesRead(activeId, token).catch(() => { });
       })
       .catch(console.error);
   }, [activeId, token, user?.github_id]);
-
   useEffect(() => { fetchMessages(); }, [fetchMessages]);
+
+  // ── auto-refresh polling ────────────────────────────────────────────────
+  useEffect(() => {
+    if (!activeId || !token) return;
+
+    const interval = setInterval(() => {
+      fetchMessages();
+    }, 3000); // polls every 3 seconds
+
+    return () => clearInterval(interval); // cleanup on convo switch or unmount
+  }, [activeId, token, fetchMessages]);
+
+  // ── auto-refresh conversation list ──────────────────────────────────────
+  useEffect(() => {
+    if (!token) return;
+
+    const interval = setInterval(() => {
+      getConversationsSummary(token)
+        .then((res) => {
+          const summaryMap = {};
+          (res.data || []).forEach((s) => { summaryMap[s.other_id] = s; });
+          setConversations((prev) =>
+            prev.map((c) => ({
+              ...c,
+              last: summaryMap[c.id]?.last_text || c.last,
+              time: summaryMap[c.id]?.last_time
+                ? new Date(summaryMap[c.id].last_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                : c.time,
+              unread: activeId === c.id ? 0 : (summaryMap[c.id]?.unread_count ?? c.unread),
+            }))
+          );
+        })
+        .catch(() => { });
+    }, 5000); // slightly slower than message poll — 5s is fine for sidebar
+
+    return () => clearInterval(interval);
+  }, [token, activeId]);
 
   // auto-scroll
   useEffect(() => {
@@ -221,11 +299,18 @@ function Messages() {
   };
 
   // ── message actions ─────────────────────────────────────────────────────
-  const handleCopy = (text) => navigator.clipboard.writeText(text).catch(() => {});
+  const handleCopy = (text) => navigator.clipboard.writeText(text).catch(() => { });
 
-  const handleDelete = (msgId) => {
+  const handleDelete = async (msgId) => {
+    // Optimistically remove from UI
     setMessages((prev) => prev.filter((m) => m.id !== msgId));
-    // TODO: call DELETE /messages/:id
+    try {
+      await deleteMessage(msgId, token);
+    } catch (err) {
+      console.error("Delete failed:", err);
+      // Re-fetch to restore if backend rejected it
+      fetchMessages();
+    }
   };
 
   // ── filtered conversations ──────────────────────────────────────────────
@@ -284,7 +369,13 @@ function Messages() {
                 <div
                   key={c.id}
                   className={`conversation-item ${activeId === c.id ? "conversation-item-active" : ""}`}
-                  onClick={() => setActiveId(c.id)}
+                  onClick={() => {
+                    setActiveId(c.id);
+                    // Clear unread badge locally on click
+                    setConversations((prev) =>
+                      prev.map((conv) => conv.id === c.id ? { ...conv, unread: 0 } : conv)
+                    );
+                  }}
                 >
                   <div className="conversation-avatar-wrap">
                     <div className="conversation-avatar">
@@ -301,6 +392,9 @@ function Messages() {
                     </div>
                     <div className="conversation-row-bottom">
                       <span className="conversation-last">{c.last}</span>
+                      {c.unread > 0 && (
+                        <span className="unread-badge">{c.unread > 99 ? "99+" : c.unread}</span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -421,7 +515,7 @@ function Messages() {
                           <button className="msg-action-btn" title="Copy" onClick={() => handleCopy(m.text)}>
                             <FiCopy size={13} />
                           </button>
-                          <button className="msg-action-btn" title="Forward">
+                          <button className="msg-action-btn" title="Forward" onClick={() => { setForwardMsg(m); setShowForwardModal(true); }}>
                             <FiShare2 size={13} />
                           </button>
                           {m.fromMe && (
@@ -546,6 +640,58 @@ function Messages() {
           )}
         </div>
       </div>
+
+      {showForwardModal && forwardMsg && (
+        <div className="forward-modal-overlay" onClick={() => setShowForwardModal(false)}>
+          <div className="forward-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="forward-modal-header">
+              <span className="forward-modal-title">Forward to...</span>
+              <button className="forward-modal-close" onClick={() => setShowForwardModal(false)}>
+                <FiX size={16} />
+              </button>
+            </div>
+            <div className="forward-modal-list">
+              {conversations
+                .filter((c) => c.id !== activeId) // exclude current chat
+                .map((c) => (
+                  <div
+                    key={c.id}
+                    className="forward-modal-item"
+                    onClick={async () => {
+                      setShowForwardModal(false);
+                      try {
+                        await sendMessage(c.id, forwardMsg.text, token, {
+                          attachment: forwardMsg.attachment,
+                        });
+                        // if forwarding to current chat, refresh
+                        if (c.id === activeId) fetchMessages();
+                      } catch (err) {
+                        console.error("Forward failed:", err);
+                      }
+                      setForwardMsg(null);
+                    }}
+                  >
+                    <div className="conversation-avatar" style={{ width: 36, height: 36, fontSize: "0.9rem", flexShrink: 0 }}>
+                      {c.avatar
+                        ? <img src={c.avatar} alt={c.name} style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
+                        : firstLetter(c.name)}
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: "0.88rem", color: "var(--text)" }}>{c.name}</div>
+                      <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>@{c.username}</div>
+                    </div>
+                  </div>
+                ))}
+              {conversations.filter((c) => c.id !== activeId).length === 0 && (
+                <p style={{ padding: "16px", color: "var(--text-secondary)", fontSize: "0.85rem" }}>
+                  No other conversations to forward to.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+      
     </div>
   );
 }

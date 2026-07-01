@@ -10,6 +10,8 @@ import { useNavigate } from "react-router-dom";
 // Dashboard.jsx — add these two lines near the top, with other imports
 import { useTheme } from "../context/ThemeContext.jsx";
 import { FiMoon, FiSun } from "react-icons/fi";
+import { getMyConnections } from "../services/connectionServices.js";
+import { getUsersByIds } from "../services/userService.js";
 
 function Dashboard() {
 
@@ -35,6 +37,8 @@ function Dashboard() {
   const [trendingProjects, setTrendingProjects] = useState([]);
 
   const [bookmarkCount, setBookmarkCount] = useState(0);
+
+  const [connections, setConnections] = useState([]);
 
   const navigate = useNavigate()
 
@@ -135,6 +139,17 @@ function Dashboard() {
       console.error("Failed to load trending projects:", error);
     });
   }, []);
+
+  useEffect(() => {
+    if (!token) return;
+    getMyConnections(token)
+      .then((res) => {
+        const ids = res.data.connected_ids || [];
+        if (ids.length === 0) return;
+        getUsersByIds(ids, token).then((r) => setConnections(r.data.slice(0, 5)));
+      })
+      .catch(console.error);
+  }, [token]);
 
   // ─────────────────────────────────────────────
   // Join project
@@ -476,6 +491,51 @@ function Dashboard() {
                   ))
                 )}
               </div>
+            </div>
+
+            {/* ── Connections ── */}
+            <div className="dash-connections-card">
+              <div className="dash-connections-header">
+                <span className="dash-connections-title">Your Connections</span>
+                <a className="view-all-link" href="#" onClick={(e) => { e.preventDefault(); navigate('/recommendations'); }}>
+                  View all {"->"}
+                </a>
+              </div>
+
+              {connections.length === 0 ? (
+                <p className="dash-connections-empty">
+                  No connections yet — find developers in Recommendations.
+                </p>
+              ) : (
+                <div className="dash-connections-list">
+                  {connections.map((c) => (
+                    <div
+                      key={c.github_id}
+                      className="dash-connection-item"
+                      onClick={() => navigate(`/profile/${c.username}`)}
+                    >
+                      <div className="dash-conn-avatar" style={{ background: gradientFor(c.username) }}>
+                        {c.avatar
+                          ? <img src={c.avatar} alt={c.username} style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
+                          : c.username?.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="dash-conn-info">
+                        <span className="dash-conn-name">{c.name || c.username}</span>
+                        <span className="dash-conn-username">@{c.username}</span>
+                      </div>
+                      <button
+                        className="dash-conn-msg-btn"
+                        onClick={(e) => { e.stopPropagation(); navigate('/messages'); }}
+                        title="Send message"
+                      >
+                        <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="community-highlights">

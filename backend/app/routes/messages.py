@@ -70,6 +70,24 @@ def send_message():
     if not to_id:
         return jsonify({"error": "to_id required"}), 400
 
+    # ── connection check ──────────────────────────────────────────────────
+    # connections stores ids as ints, convert carefully
+    try:
+        me_int = int(me)
+        to_int = int(to_id)
+    except (ValueError, TypeError):
+        return jsonify({"error": "Invalid user id"}), 400
+
+    is_connected = db.connections.find_one({
+        "$or": [
+            {"from_id": me_int, "to_id": to_int},
+            {"from_id": to_int, "to_id": me_int},
+        ]
+    })
+    if not is_connected:
+        return jsonify({"error": "You are not connected with this user"}), 403
+    # ─────────────────────────────────────────────────────────────────────
+
     reply_to = None
     if reply_to_id:
         try:
@@ -158,10 +176,20 @@ def get_conversations_summary():
     convos = list(db.conversations.find({"user_id": me}).sort("last_time", -1))
     result = []
     for c in convos:
+        other_id = str_id(c.get("other_id"))
+
+        # Count messages sent TO me FROM this person that aren't seen yet
+        unread = db.messages.count_documents({
+            "from_id": other_id,
+            "to_id": me,
+            "status": {"$ne": "seen"},
+        })
+
         result.append({
-            "other_id": str_id(c.get("other_id")),
+            "other_id": other_id,
             "last_text": c.get("last_text", ""),
             "last_time": c.get("last_time", datetime.utcnow()).isoformat(),
+            "unread_count": unread,   # ← new field
         })
     return jsonify(result), 200
 
